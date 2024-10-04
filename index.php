@@ -1,10 +1,48 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Stock Trading System</title>
+    <?php "include/metainfo.php" ?>
+    <title>ZNCTech - Trade Smarter, Trade Better</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
+
+	<?php include "includes/header.php" ?>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h2>Trade Smarter, Trade Better with ZNCTech</h2>
+        <p>Join ZNCTech today and start trading with tools you can trust, designed to help you achieve your financial goals.</p>
+        <button>Get Started</button>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+		<div class="feature-item">
+			<img src="images/shield.webp" alt="Secure Trading">
+			<h3>Secure Trading</h3>
+			<p>Your investments are safe with us. We provide advanced encryption and security to protect your trades and personal information.</p>
+		</div>
+		<div class="feature-item">
+			<img src="images/stock.webp" alt="Real-Time Data">
+			<h3>Real-Time Market Data</h3>
+			<p>Access up-to-date market information and make informed decisions with real-time stock data at your fingertips.</p>
+		</div>
+		<div class="feature-item">
+			<img src="images/support.webp" alt="Dedicated Support">
+			<h3>Dedicated Support</h3>
+			<p>Our dedicated team is here to assist you during trading hours, providing expert support when you need it most.</p>
+		</div>
+	</section>
+
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <h2>Ready to Start Trading?</h2>
+        <button>Sign Up Now</button>
+    </section>
+
+	<?php include "includes/footer.php" ?>
+
 </body>
 </html>
