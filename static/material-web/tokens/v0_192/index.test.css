@@ -1,0 +1,35 @@
+/*
+Error: Invalid CSS after "@include test": expected selector or at-rule, was ".describe('inde..."
+        on line 14 of C:\xampp\htdocs\STS\static\material-web\tokens\v0_192\index.test.scss
+
+9: 
+10: @use 'true' as test;
+11: 
+12: @use './index';
+13: 
+14: @include test.describe('index') {
+15:   @include test.describe('index.md-comp-assist-chip-values') {
+16:     @include test.it('should forward non-empty map') {
+17:       @include test.assert-true(index.md-comp-assist-chip-values());
+18:     }
+19:   }
+
+Backtrace:
+C:\xampp\htdocs\STS\static\material-web\tokens\v0_192\index.test.scss:14
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/scss/parser.rb:1308:in `expected'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/scss/parser.rb:1238:in `expected'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/scss/parser.rb:42:in `parse'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/engine.rb:414:in `_to_tree'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/engine.rb:290:in `render'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:396:in `run'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:63:in `process_result'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/exec/base.rb:50:in `parse'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/lib/sass/exec/base.rb:18:in `parse!'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/lib/ruby/gems/3.0.0/gems/sass-3.7.4/bin/sass:13:in `<top (required)>'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/bin/sass:23:in `load'
+C:/Program Files/Adobe/Adobe Dreamweaver 2021/ruby/bin/sass:23:in `<main>'
+*/
+body:before {
+  white-space: pre;
+  font-family: monospace;
+  content: "Error: Invalid CSS after \"@include test\": expected selector or at-rule, was \".describe('inde...\"\A         on line 14 of C:\xampp\htdocs\STS\static\material-web\tokens\v0_192\index.test.scss\A \A 9: \A 10: @use 'true' as test;\A 11: \A 12: @use './index';\A 13: \A 14: @include test.describe('index') {\A 15:   @include test.describe('index.md-comp-assist-chip-values') {\A 16:     @include test.it('should forward non-empty map') {\A 17:       @include test.assert-true(index.md-comp-assist-chip-values());\A 18:     }\A 19:   }"; }

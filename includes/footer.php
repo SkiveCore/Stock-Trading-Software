@@ -1,3 +1,4 @@
+<!-- footer.php -->
 <footer>
-	<p>&copy; 2024 ZNCTech - All Rights Reserved</p>
+    <p>&copy; 2024 ZNCTech - All Rights Reserved</p>
 </footer>

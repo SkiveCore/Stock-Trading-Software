@@ -10,6 +10,18 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ZNCTech - Trade Smarter, Trade Better">
 <meta name="twitter:description" content="Join ZNCTech today for secure stock trading with real-time market data and expert support. Achieve your financial goals with the best trading tools.">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script type="importmap">
+	{
+	  "imports": {
+		"@material/web/": "https://esm.run/@material/web/"
+	  }
+	}
+</script>
+<script type="module">
+	import '@material/web/all.js';
+</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
