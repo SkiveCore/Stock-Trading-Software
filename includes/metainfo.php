@@ -14,6 +14,9 @@
 <meta name="twitter:title" content="ZNCTech - Trade Smarter, Trade Better">
 <meta name="twitter:description" content="Join ZNCTech today for secure stock trading with real-time market data and expert support. Achieve your financial goals with the best trading tools.">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Load Chart.js for graph -->
+
+<script src="/js/script.js"></script>
 <script type="importmap">
 	{
 	  "imports": {
