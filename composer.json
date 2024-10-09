@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phpgangsta/googleauthenticator": "dev-master",
+        "endroid/qr-code": "^5.1"
+    }
+}

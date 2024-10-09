@@ -1,3 +1,4 @@
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="ZNCTech offers secure stock trading with real-time market data and expert support. Join our platform to make smarter financial decisions and trade better.">
@@ -12,14 +13,14 @@
 <meta name="twitter:description" content="Join ZNCTech today for secure stock trading with real-time market data and expert support. Achieve your financial goals with the best trading tools.">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script type="importmap">
+<script nonce="<?php echo $nonce; ?>" type="importmap">
 	{
 	  "imports": {
 		"@material/web/": "https://esm.run/@material/web/"
 	  }
 	}
 </script>
-<script type="module">
+<script nonce="<?php echo $nonce; ?>" type="module">
 	import '@material/web/all.js';
 </script>
 <script type="application/ld+json">
