@@ -108,8 +108,9 @@ class PHPGangsta_GoogleAuthenticator
         if (isset($title)) {
             $urlencoded .= urlencode('&issuer='.urlencode($title));
         }
+		
+		return "https://api.qrserver.com/v1/create-qr-code/?data={$urlencoded}&size={${width}}x{${height}}&ecc={$level}";
 
-        return "https://api.qrserver.com/v1/create-qr-code/?data=$urlencoded&size=${width}x${height}&ecc=$level";
     }
 
     /**

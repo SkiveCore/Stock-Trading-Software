@@ -1,4 +1,5 @@
 /* General Styles */
+@import url("/css/googlefonts.css");
 body {
 	margin: 0;
 	font-family: 'Arial', sans-serif;
@@ -262,6 +263,108 @@ button[type="submit"]:hover {
 .not-found-page a:hover {
     color: #ff9100;
 }
+
+
+
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: #f9f9f9;
+}
+
+.account-settings-card {
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+}
+
+h2.center-align {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #1c3c80;
+    font-size: 2rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 20px;
+}
+
+.full-width {
+    grid-column: 1 / 2;
+    width: 100%;
+}
+
+.md-filled-button {
+    width: 100%;
+    margin-top: 20px;
+    background-color: #6200ea;
+    color: #fff;
+}
+
+.qr-section {
+    text-align: center;
+    display: flex; /* Change grid to flexbox */
+    flex-direction: column; /* Align elements vertically */
+    justify-content: center; /* Center elements vertically */
+    align-items: center; /* Center elements horizontally */
+    gap: 10px; /* Reduce gap between items */
+    margin-top: 20px; /* Adjust the top margin for better spacing */
+}
+
+.qr-section p {
+    margin-bottom: 10px; /* Reduce the space under the text */
+    font-size: 1.1rem; /* Adjust text size for better readability */
+    color: #333;
+}
+
+.qr-code {
+    margin: 10px 0; /* Adjust spacing around the QR code */
+    max-width: 200px; /* Adjust the size to make it more compact */
+    height: auto;
+    border: 2px solid #f0f0f0;
+    border-radius: 8px; /* Slight rounding of the border */
+}
+
+
+.qr-section button[type="submit"], .qr-section .md-filled-button {
+    width: 100%;
+    background-color: #6200ea;
+    color: #fff;
+    padding: 15px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.qr-section button[type="submit"]:hover, .qr-section .md-filled-button:hover {
+    background-color: #3700b3; /* Darker shade on hover */
+}
+
+
+button[type="submit"] {
+    background-color: #6200ea;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #3700b3;
+}
+
+
 * {
     box-sizing: border-box;
 }

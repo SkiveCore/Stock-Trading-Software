@@ -10,7 +10,9 @@
 		<div class="container register-form">
 			<h2 class="center-align">Register for ZNCTech</h2>
 			<?php
-			session_start();
+			if (session_status() == PHP_SESSION_NONE) {
+				session_start();
+			}
 			require 'includes/db_connect.php';
 			require 'includes/PHPMailer/src/Exception.php';
 			require 'includes/PHPMailer/src/PHPMailer.php';
