@@ -13,6 +13,20 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ZNCTech - Trade Smarter, Trade Better">
 <meta name="twitter:description" content="Join ZNCTech today for secure stock trading with real-time market data and expert support. Achieve your financial goals with the best trading tools.">
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="manifest" href="/includes/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+<link rel="shortcut icon" href="/images/favicon.ico">
+<meta name="apple-mobile-web-app-title" content="ZNCTech">
+<meta name="application-name" content="ZNCTech">
+<meta name="msapplication-TileColor" content="#2b5797">
+<meta name="msapplication-TileImage" content="/images/mstile-150x150.png">
+<meta name="theme-color" content="#ffffff">
+
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Load Chart.js for graph -->
 

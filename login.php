@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['email'] = $_SESSION['temp_email']; 
             $_SESSION['first_name'] = $_SESSION['temp_first_name']; 
             $_SESSION['last_name'] = $_SESSION['temp_last_name'];
+			$_SESSION['is_admin'] = $_SESSION['temp_is_admin'];
             
             // Clear the 2FA session data
             unset($_SESSION['two_factor_pending']);
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             unset($_SESSION['temp_first_name']);
             unset($_SESSION['temp_last_name']);
             unset($_SESSION['two_fa_secret']);
+            unset($_SESSION['temp_is_admin']);
             
             header('Location: index.php');  // Redirect to index page
             exit();
@@ -52,13 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if (empty($errors)) {
             try {
-                $stmt = $conn->prepare("SELECT id, first_name, last_name, password_hash, is_verified, two_factor_enabled, two_fa_secret FROM users WHERE email = ?");
+                $stmt = $conn->prepare("SELECT id, first_name, last_name, password_hash, is_verified, two_factor_enabled, two_fa_secret, is_admin FROM users WHERE email = ?");
                 $stmt->bind_param("s", $email);
                 $stmt->execute();
                 $stmt->store_result();
 
                 if ($stmt->num_rows == 1) {
-                    $stmt->bind_result($user_id, $first_name, $last_name, $password_hash, $is_verified, $two_factor_enabled, $two_fa_secret);
+                    $stmt->bind_result($user_id, $first_name, $last_name, $password_hash, $is_verified, $two_factor_enabled, $two_fa_secret, $is_admin);
                     $stmt->fetch();
 
                     if (!$is_verified) {
@@ -70,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $_SESSION['temp_user_id'] = $user_id;      // Store user ID in a temporary session
                             $_SESSION['temp_email'] = $email;         // Store email in a temporary session
                             $_SESSION['temp_first_name'] = $first_name; // Store first name in a temporary session
+							$_SESSION['temp_is_admin'] = $is_admin;
                             $_SESSION['temp_last_name'] = $last_name;   // Store last name in a temporary session
                             $_SESSION['two_factor_pending'] = true;   // Set the flag for pending 2FA
                             $_SESSION['two_fa_secret'] = $two_fa_secret;
@@ -79,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $_SESSION['email'] = $email;
                             $_SESSION['first_name'] = $first_name;   // Set first name
                             $_SESSION['last_name'] = $last_name;     // Set last name
+							$_SESSION['is_admin'] = $is_admin;
                             header('Location: index.php');
                             exit();
                         }
