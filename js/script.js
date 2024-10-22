@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const timeLabel = new Date(now.setHours(0, 0, 0, 0)); // Start from midnight
         timeLabel.setMinutes(i); // Add i minutes to midnight
         timeLabels.push(timeLabel.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        
+
         if (i <= currentMinute) {
             portfolioData.push(0); // Flat line for the past
         } else {
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Create a line chart with a dotted line for the future and solid for past
+    // Create a line chart with a dotted line for the future and solid for the past
     stockChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             return tooltipItems[0].label;
                         }
                     },
-                    position: 'nearest',
                     positioner: function (tooltipItems, coordinates) {
                         const index = tooltipItems[0].dataIndex;
 
@@ -88,11 +87,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (index > currentMinute) {
                             const chart = tooltipItems[0].chart;
                             const x = chart.scales.x.getPixelForValue(timeLabels[currentMinute]);
-                            const y = coordinates.y;
-                            return { x: x, y: y }; // Return the locked position for the tooltip
+                            const y = chart.scales.y.getPixelForValue(0); // Ensure it's locked to the line position
+                            return { x: x, y: y }; // Lock the tooltip at the current time
                         }
 
-                        // For past and current times, use the default position
+                        // For past and current times, return the default position
                         return coordinates;
                     }
                 },
@@ -109,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         plugins: [{
-            afterDraw: function(chart) {
+            afterDraw: function (chart) {
                 if (chart.tooltip._active && chart.tooltip._active.length) {
                     const activePoint = chart.tooltip._active[0];
                     const ctx = chart.ctx;
@@ -136,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }]
     });
 
-    // Function to simulate different timeframes and update the chart
     function updateChart(timeframe) {
         const buttons = document.querySelectorAll('.time-button');
         buttons.forEach(button => button.classList.remove('selected'));
@@ -151,7 +149,16 @@ document.addEventListener('DOMContentLoaded', function () {
         dividerHighlight.style.width = `${buttonWidth}px`;
         dividerHighlight.style.left = `${buttonPosition}px`;
     }
-
-    // Automatically select 1D when the page loads and position the highlight
     updateChart('1d');
 });
+
+function toggleMenu() {
+    const menu = document.querySelector('.nav-menu');
+    const hamburger = document.querySelector('.hamburger');
+    
+    // Toggle the 'show' class on the menu to apply the scale transformation
+    menu.classList.toggle('show');
+    
+    // Optionally toggle an active class on the hamburger for the "X" effect
+    hamburger.classList.toggle('active');
+}
