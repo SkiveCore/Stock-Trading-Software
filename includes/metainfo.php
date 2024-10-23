@@ -23,7 +23,6 @@
 <meta name="theme-color" content="#ffffff">
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
 <script src="/js/script.js" defer></script>
 <script type="importmap">

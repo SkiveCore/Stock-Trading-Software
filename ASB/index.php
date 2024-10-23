@@ -37,7 +37,6 @@ $totalPages = ceil($totalStocks / $limit);
     <div class="container">
         <h2>Admin Dashboard</h2>
 
-        <!-- Stock Table -->
         <h3>Current Stocks</h3>
         <table class="stock-table">
             <thead>

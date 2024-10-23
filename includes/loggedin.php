@@ -13,10 +13,8 @@
 			<span class="time-button" onclick="updateChart('1y')" id="1y">1Y</span>
 			<span class="time-button" onclick="updateChart('all')" id="all">ALL</span>
 
-			<!-- Full gray line below buttons -->
 			<div class="divider-line-full"></div>
 
-			<!-- Highlighted part of the line (this will move) -->
 			<div class="divider-line-highlight"></div>
 		</div>
 
@@ -28,7 +26,6 @@
         </div>
     </div>
 
-    <!-- Stock List floated to the right -->
     <div class="stock-list">
         <h3>Your Stocks</h3>
         <ul>
@@ -36,3 +33,4 @@
         </ul>
     </div>
 </div>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
