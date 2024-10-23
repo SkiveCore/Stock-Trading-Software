@@ -1,6 +1,3 @@
-<?php
-
-?>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="ZNCTech offers secure stock trading with real-time market data and expert support. Join our platform to make smarter financial decisions and trade better.">

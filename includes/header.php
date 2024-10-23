@@ -15,7 +15,7 @@ if (session_status() == PHP_SESSION_NONE) {
             <span class="welcome-message">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?></span>
             <a href="/account.php" class="nav-link">Account Details</a>
 			<?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1): ?>
-                <a href="/admin/admin.php" class="nav-link">Admin Panel</a>
+                <a href="/ASB/index.php" class="nav-link">Admin Panel</a>
             <?php endif; ?>
             <a href="/logout.php" class="nav-link">Logout</a>
         <?php else: ?>
