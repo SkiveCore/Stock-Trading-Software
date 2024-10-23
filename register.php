@@ -4,6 +4,7 @@
     	<?php include "includes/metainfo.php"; ?>
 		<title>ZNCTech - Register</title>
 		<link rel="stylesheet" href="css/style.css">
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 	</head>
 	<body>
 		<?php include "includes/header.php"; ?>
