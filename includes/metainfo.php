@@ -28,9 +28,9 @@
 <meta name="theme-color" content="#ffffff">
 
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Load Chart.js for graph -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
-<script src="/js/script.js"></script>
+<script src="/js/script.js" defer></script>
 <script type="importmap">
 	{
 	  "imports": {
