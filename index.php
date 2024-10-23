@@ -9,6 +9,13 @@ if (session_status() == PHP_SESSION_NONE) {
     <?php include "includes/metainfo.php"; ?>
     <title>ZNCTech - Trade Smarter, Trade Better</title>
     <link rel="stylesheet" href="css/style.css">
+	<?php
+    if (!isset($_SESSION['user_id'])){
+	?>
+    <link rel="stylesheet" href="css/homepage.css">
+	<?php
+	} 
+	?>
 </head>
 <body>
 

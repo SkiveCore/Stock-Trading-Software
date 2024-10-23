@@ -7,6 +7,7 @@ http_response_code(404);
     <?php include "includes/metainfo.php"; ?>
     <title>ZNCTech - Page Not Found</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/404.css">
 </head>
 <body>
 

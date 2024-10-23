@@ -1,5 +1,6 @@
 /* General Styles */
 @import url("/css/googlefonts.css");
+@import url("/css/header.css");
 body {
 	margin: 0;
 	font-family: 'Arial', sans-serif;
@@ -7,7 +8,6 @@ body {
 	color: #333;
 	box-sizing: border-box;
 }
-
 a {
 	text-decoration: none;
 	color: white;
@@ -15,183 +15,9 @@ a {
 .register-form a, .login-form a {
     color: #1c3c80;
 }
-
 .register-form a:hover, .login-form a:hover {
     color: #ff9100;
 }
-/* Header Section with Navigation */
-
-header {
-    background-color: #1c3c80;
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-header h1 {
-    font-size: 1.8rem;
-    margin: 0;
-}
-
-/* Hamburger Menu Button */
-.hamburger {
-    display: none;
-    flex-direction: column;
-    cursor: pointer;
-    gap: 5px;
-}
-
-.hamburger span {
-    width: 25px;
-    height: 3px;
-    background-color: white;
-    border-radius: 3px;
-}
-
-.hamburger:hover span {
-    background-color: #ffab00;
-}
-
-/* Nav Menu Styling */
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.nav-menu .nav-link {
-    color: white;
-    background-color: #ffab00;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 1rem;
-    transition: background-color 0.3s;
-}
-
-.nav-menu .nav-link:hover {
-    background-color: #ff9100;
-}
-.hero {
-    position: relative;
-    overflow: hidden;
-    text-align: center;
-    padding: 120px 20px;
-}
-
-.hero-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -1;
-}
-.hero-content {
-    position: relative;
-    z-index: 1;
-    color: #f0f0f0;
-    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-}
-.hero h2 {
-	font-size: 3rem;
-	margin-bottom: 20px;
-	color: #f0f0f0;
-	text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-}
-
-.hero p {
-	font-size: 1.4rem;
-	margin-bottom: 30px;
-	color: #f0f0f0;
-	text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-}
-
-.hero button {
-	background-color: #ffab00;
-	border: none;
-	padding: 15px 40px;
-	font-size: 1.3rem;
-	color: #fff;
-	cursor: pointer;
-	border-radius: 5px;
-	box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
-	transition: background-color 0.3s;
-}
-
-.hero button:hover {
-	background-color: #ff9100;
-}
-
-/* Features Section */
-.features {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-	gap: 20px;
-	padding: 50px 20px;
-	background-color: #fff;
-}
-
-.feature-item {
-	background: #fff;
-	border-radius: 10px;
-	padding: 20px;
-	text-align: center;
-	box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.feature-item img {
-	max-width: 150px; /* Increase the image size */
-	margin-bottom: 20px;
-	filter: grayscale(100%) brightness(0.9) contrast(1.1) saturate(1.2); /* Apply a subtle glossy look */
-	border-radius: 10px; /* Optional: Apply a slight border radius */
-	transition: transform 0.3s ease, filter 0.3s ease; /* Smooth transition on hover */
-}
-
-.feature-item h3 {
-	font-size: 1.7rem;
-	margin-bottom: 15px;
-}
-
-.feature-item p {
-	font-size: 1.1rem;
-}
-
-/* CTA Section */
-.cta {
-	background-color: #ffab00;
-	color: white;
-	text-align: center;
-	padding: 50px 20px;
-	margin-top: 40px;
-}
-
-.cta h2 {
-	margin-bottom: 20px;
-	font-size: 2.5rem;
-}
-
-.cta button {
-	background-color: #fff;
-	color: #ffab00;
-	border: none;
-	padding: 15px 40px;
-	font-size: 1.3rem;
-	cursor: pointer;
-	border-radius: 5px;
-	transition: background-color 0.3s;
-}
-
-.cta button:hover {
-	background-color: #f4f4f4;
-}
-
-/* Footer Section */
 footer {
 	background-color: #1c3c80;
 	color: white;
@@ -211,7 +37,6 @@ footer p {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
-
 .register-form h2 {
     text-align: center;
     margin-bottom: 30px;
@@ -227,8 +52,6 @@ footer p {
 .full-width {
     grid-column: 1 / 3;
 }
-
-/* Submit Button */
 button[type="submit"] {
     width: 100%;
     background-color: #ffab00;
@@ -240,11 +63,9 @@ button[type="submit"] {
     cursor: pointer;
     transition: background-color 0.3s;
 }
-
 button[type="submit"]:hover {
     background-color: #ff9100;
 }
-
 .success-message {
     background-color: #dff0d8;
     color: #3c763d;       
@@ -255,7 +76,6 @@ button[type="submit"]:hover {
     text-align: center;  
     font-size: 1.1rem;
 }
-
 .error-message {
     background-color: #f2dede; 
     color: #a94442;           
@@ -263,41 +83,9 @@ button[type="submit"]:hover {
     padding: 15px;
     margin-bottom: 20px;
     border-radius: 5px;
-    text-align: center;        /* Center the text */
+    text-align: center;
     font-size: 1.1rem;
 }
-/* Styles for the 404 Not Found Page */
-.not-found-page {
-    background-color: #fff;
-    max-width: 700px;
-    margin: 50px auto;
-    padding: 40px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-}
-
-.not-found-page h2 {
-    font-size: 2.5rem;
-    color: #1c3c80;
-    margin-bottom: 20px;
-}
-
-.not-found-page p {
-    font-size: 1.2rem;
-    color: #333;
-    margin-bottom: 20px;
-}
-
-.not-found-page a {
-    color: #ffab00;
-    text-decoration: underline;
-}
-
-.not-found-page a:hover {
-    color: #ff9100;
-}
-
 
 
 
@@ -343,26 +131,26 @@ h2.center-align {
 
 .qr-section {
     text-align: center;
-    display: flex; /* Change grid to flexbox */
-    flex-direction: column; /* Align elements vertically */
-    justify-content: center; /* Center elements vertically */
-    align-items: center; /* Center elements horizontally */
-    gap: 10px; /* Reduce gap between items */
-    margin-top: 20px; /* Adjust the top margin for better spacing */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 .qr-section p {
-    margin-bottom: 10px; /* Reduce the space under the text */
-    font-size: 1.1rem; /* Adjust text size for better readability */
+    margin-bottom: 10px;
+    font-size: 1.1rem;
     color: #333;
 }
 
 .qr-code {
-    margin: 10px 0; /* Adjust spacing around the QR code */
-    max-width: 200px; /* Adjust the size to make it more compact */
+    margin: 10px 0;
+    max-width: 200px;
     height: auto;
     border: 2px solid #f0f0f0;
-    border-radius: 8px; /* Slight rounding of the border */
+    border-radius: 8px;
 }
 
 
@@ -430,13 +218,11 @@ canvas {
     justify-content: flex-start;
     gap: 20px;
     margin-top: 10px;
-    position: relative; /* To contain the divider line */
+    position: relative;
     padding-bottom: 20px;
 }
-
-/* The default style for all buttons */
 .time-button {
-    color: #666; /* Default unselected color */
+    color: #666;
     font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
@@ -446,28 +232,22 @@ canvas {
 .time-button:hover {
     color: #00ff00;
 }
-
-/* Glowing effect and color for selected button */
 .time-button.selected {
     color: #00ff00;
-    text-shadow: 0 0 8px #00ff00; /* Glowing effect */
+    text-shadow: 0 0 8px #00ff00;
     font-size: 1.3rem;
 }
-
-/* The gray divider that spans the entire width */
 .divider-line-full {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     height: 2px;
-    background-color: #ccc; /* Gray color for the entire line */
+    background-color: #ccc;
 }
-
-/* The part of the divider that highlights under the selected button */
 .divider-line-highlight {
     height: 2px;
-    background-color: #00ff00; /* Glowing green for selected part */
+    background-color: #00ff00;
     position: absolute;
     bottom: 0;
     transition: all 0.3s ease;
@@ -479,8 +259,6 @@ canvas {
     font-size: 1.2rem;
     color: #333;
 }
-
-/* Stock List positioned to the right */
 .stock-list {
     width: 25%;
     margin-left: 20px;
@@ -505,18 +283,11 @@ canvas {
     margin-bottom: 10px;
     font-size: 1.1rem;
 }
-
-/* Clearfix for containers */
 .clearfix::after {
     content: "";
     display: table;
     clear: both;
 }
-
-
-
-
-
 @media (max-width: 768px) {
     .nav-menu {
         display: visible;
@@ -548,7 +319,7 @@ canvas {
         text-align: center;
     }
 	.hero {
-		padding: 80px 20px; /* Reduces padding on smaller screens for a better fit */
+		padding: 80px 20px;
 	}
 
 	.hero h2 {
