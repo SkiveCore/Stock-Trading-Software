@@ -151,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </md-icon-button>
                 </md-outlined-text-field>
                 <md-filled-button id="login-button" class="full-width" type="submit">Login</md-filled-button>
+				<input type="submit" style="display: none;">
             </form>
         <?php endif; ?>
         

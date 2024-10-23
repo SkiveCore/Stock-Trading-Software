@@ -1,0 +1,68 @@
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #1c3c80;
+    margin-bottom: 20px;
+}
+
+.stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.stock-table th, .stock-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.stock-table th {
+    background-color: #1c3c80;
+    color: #ffffff;
+}
+
+.stock-table tr:hover {
+    background-color: #f4f4f4;
+}
+
+.add-stock-form {
+    margin-top: 20px;
+}
+
+.add-stock-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.add-stock-form input, .add-stock-form select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-stock-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #1c3c80;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.add-stock-form button:hover {
+    background-color: #ffab00;
+}
