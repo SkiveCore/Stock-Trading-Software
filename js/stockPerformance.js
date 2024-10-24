@@ -22,11 +22,11 @@ document.addEventListener('DOMContentLoaded', function () {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            spanGaps: true,
             scales: {
                 x: {
                     type: 'time',
                     time: {
-                        unit: 'minute',
                         tooltipFormat: 'PPpp',
                     },
                     display: false
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateStockChart(timeframe) {
         const stockIdInput = document.querySelector('input[name="stock_id"]');
-		const stockId = stockIdInput ? stockIdInput.value : null;
+        const stockId = stockIdInput ? stockIdInput.value : null;
 
         fetch(`/BackendAutomation/fetchStockHistory.php?stock_id=${stockId}&timeframe=${timeframe}`)
             .then(response => response.json())
@@ -99,35 +99,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(error => console.error('Error:', error));
-		const buttons = document.querySelectorAll('.time-button');
-		const dividerHighlight = document.querySelector('.divider-line-highlight');
-		const selectedButton = document.getElementById(timeframe);
 
-		if (!buttons.length || !dividerHighlight || !selectedButton) {
-			console.warn("Required elements for 'updateChart' are missing.");
-			return;
-		}
+        const buttons = document.querySelectorAll('.time-button');
+        const selectedButton = document.getElementById(timeframe);
 
-		buttons.forEach(button => button.classList.remove('selected'));
-		selectedButton.classList.add('selected');
+        if (!buttons.length || !selectedButton) {
+            console.warn("Required elements for 'updateChart' are missing.");
+            return;
+        }
 
-		const buttonWidth = selectedButton.offsetWidth;
-		const buttonPosition = selectedButton.offsetLeft;
-
-		dividerHighlight.style.width = `${buttonWidth}px`;
-		dividerHighlight.style.left = `${buttonPosition}px`;
+        buttons.forEach(button => button.classList.remove('selected'));
+        selectedButton.classList.add('selected');
     }
 
     function buildOptimized1DayData(timestamps, prices) {
         const now = new Date();
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
         const oneDayData = [];
-        const interval = 60;
+        const interval = 60; // seconds
 
         for (let second = 0; second < 86400; second += interval) {
-            const timestamp = new Date(startOfDay);
-            timestamp.setSeconds(second);
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts) - timestamp) < interval * 1000);
+            const timestampMillis = startOfDay + (second * 1000);
+            const timestamp = new Date(timestampMillis);
+            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timestampMillis) < interval * 1000);
             const price = index !== -1 ? prices[index] : (oneDayData.length > 0 ? oneDayData[oneDayData.length - 1].y : 0);
             oneDayData.push({ x: timestamp, y: price });
         }
@@ -135,31 +129,42 @@ document.addEventListener('DOMContentLoaded', function () {
         return oneDayData;
     }
 
-    function buildWeeklyData(timestamps, prices) {
-        const oneWeekData = [];
-        const now = new Date();
-        const interval = 60 * 60;
-        const startTime = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+	
+	function buildWeeklyData(timestamps, prices) {
+    const oneWeekData = [];
+    const now = new Date();
 
-        for (let hour = 0; hour <= 168; hour++) {
-            const time = new Date(startTime.getTime() + (hour * interval * 1000));
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts) - time) < interval * 1000);
-            const price = index !== -1 ? prices[index] : (oneWeekData.length > 0 ? oneWeekData[oneWeekData.length - 1].y : 0);
-            oneWeekData.push({ x: time, y: price });
-        }
-
-        return oneWeekData;
-    }
+    const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
+		const interval = 60 * 60 * 1000; // 1 hour in milliseconds
+		const startTimeUTC = nowUTC - (7 * 24 * 60 * 60 * 1000);
+		for (let hour = 0; hour <= 168; hour++) { // 168 hours in a week
+			const timeMillis = startTimeUTC + (hour * interval);
+			const time = new Date(timeMillis);
+			const index = timestamps.findIndex(ts => {
+				const tsMillis = Date.parse(ts);
+				return Math.abs(tsMillis - timeMillis) < interval;
+			});
+			const price = index !== -1 
+				? prices[index] 
+				: (oneWeekData.length > 0 ? oneWeekData[oneWeekData.length - 1].y : 0);
+			oneWeekData.push({ 
+				x: new Date(time), // Ensure the date is in UTC
+				y: price 
+			});
+		}
+		return oneWeekData;
+	}
 
     function buildMonthlyData(timestamps, prices) {
         const oneMonthData = [];
         const now = new Date();
-        const interval = 24 * 60 * 60;
-        const startTime = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        const startTime = now.getTime() - (30 * interval);
 
         for (let day = 0; day < 30; day++) {
-            const time = new Date(startTime.getTime() + (day * interval * 1000));
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts) - time) < interval * 1000);
+            const timeMillis = startTime + (day * interval);
+            const time = new Date(timeMillis);
+            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
             const price = index !== -1 ? prices[index] : (oneMonthData.length > 0 ? oneMonthData[oneMonthData.length - 1].y : 0);
             oneMonthData.push({ x: time, y: price });
         }
@@ -170,12 +175,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function buildQuarterlyData(timestamps, prices) {
         const threeMonthsData = [];
         const now = new Date();
-        const interval = 24 * 60 * 60;
-        const startTime = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
+        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        const startTime = now.getTime() - (90 * interval);
 
         for (let day = 0; day < 90; day++) {
-            const time = new Date(startTime.getTime() + (day * interval * 1000));
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts) - time) < interval * 1000);
+            const timeMillis = startTime + (day * interval);
+            const time = new Date(timeMillis);
+            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
             const price = index !== -1 ? prices[index] : (threeMonthsData.length > 0 ? threeMonthsData[threeMonthsData.length - 1].y : 0);
             threeMonthsData.push({ x: time, y: price });
         }
@@ -186,12 +192,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function buildYTDData(timestamps, prices) {
         const ytdData = [];
         const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        const interval = 24 * 60 * 60;
+        const startOfYear = Date.UTC(now.getUTCFullYear(), 0, 1);
+        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        const daysSinceStartOfYear = Math.floor((now.getTime() - startOfYear) / interval);
 
-        for (let day = 0; day <= (now - startOfYear) / (24 * 60 * 60 * 1000); day++) {
-            const time = new Date(startOfYear.getTime() + (day * interval * 1000));
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts) - time) < interval * 1000);
+        for (let day = 0; day <= daysSinceStartOfYear; day++) {
+            const timeMillis = startOfYear + (day * interval);
+            const time = new Date(timeMillis);
+            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
             const price = index !== -1 ? prices[index] : (ytdData.length > 0 ? ytdData[ytdData.length - 1].y : 0);
             ytdData.push({ x: time, y: price });
         }
@@ -202,12 +210,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function buildYearlyData(timestamps, prices) {
         const oneYearData = [];
         const now = new Date();
-        const interval = 24 * 60 * 60;
-        const startTime = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000));
+        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        const startTime = now.getTime() - (365 * interval);
 
         for (let day = 0; day < 365; day++) {
-            const time = new Date(startTime.getTime() + (day * interval * 1000));
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts) - time) < interval * 1000);
+            const timeMillis = startTime + (day * interval);
+            const time = new Date(timeMillis);
+            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
             const price = index !== -1 ? prices[index] : (oneYearData.length > 0 ? oneYearData[oneYearData.length - 1].y : 0);
             oneYearData.push({ x: time, y: price });
         }
@@ -223,4 +232,3 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-

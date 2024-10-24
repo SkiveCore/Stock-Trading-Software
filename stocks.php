@@ -15,7 +15,8 @@ if ($symbol) {
     $result = $stmt->get_result();
     $stock = $result->fetch_assoc();
     if (!$stock) {
-        die("Stock not found.");
+		header("Location: /404.php");
+		exit();
     }
     $stock_id = $stock['stock_id'];
 } elseif ($stock_id) {
@@ -26,10 +27,12 @@ if ($symbol) {
     $result = $stmt->get_result();
     $stock = $result->fetch_assoc();
     if (!$stock) {
-        die("Stock not found.");
+		header("Location: /404.php");
+		exit();
     }
 } else {
-    die("Invalid request.");
+    header("Location: /404.php");
+    exit();
 }
 
 $cash_balance = 0;
@@ -60,14 +63,14 @@ $cash_balance = 0;
             <div class="chart-container">
                 <canvas id="stockPerformanceChart"></canvas>
                 <div class="timeframe-buttons">
-                    <span class="time-button selected" onclick="updateStockChart('1d')" id="1d">1D</span>
-                    <span class="time-button" onclick="updateStockChart('1w')" id="1w">1W</span>
-                    <span class="time-button" onclick="updateStockChart('1m')" id="1m">1M</span>
-                    <span class="time-button" onclick="updateStockChart('3m')" id="3m">3M</span>
-                    <span class="time-button" onclick="updateStockChart('ytd')" id="ytd">YTD</span>
-                    <span class="time-button" onclick="updateStockChart('1y')" id="1y">1Y</span>
-                    <span class="time-button" onclick="updateStockChart('all')" id="all">ALL</span>
-                </div>
+					<span class="time-button selected" id="1d">1D</span>
+					<span class="time-button" id="1w">1W</span>
+					<span class="time-button" id="1m">1M</span>
+					<span class="time-button" id="3m">3M</span>
+					<span class="time-button" id="ytd">YTD</span>
+					<span class="time-button" id="1y">1Y</span>
+					<span class="time-button" id="all">ALL</span>
+				</div>
             </div>
 
 			<div class="purchase-card">

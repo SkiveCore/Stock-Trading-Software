@@ -1,18 +1,174 @@
+/* General header styling */
 header {
     background-color: #1c3c80;
     color: white;
-    padding: 15px 20px;
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
-header h1 {
-    font-size: 1.8rem;
-    margin: 0;
+header h1 a {
+    color: white;
+    text-decoration: none;
 }
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-bar {
+    position: relative;
+    flex: 1;
+    max-width: 500px;
+    margin: 0 20px;
+}
+
+#stock-search {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    width: 100%;
+    outline: none;
+}
+
+#stock-search:focus {
+    box-shadow: 0 0 5px rgba(255, 171, 0, 0.5);
+}
+
+.search-results {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+}
+
+.search-result-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s;
+    color: #333;
+}
+
+.search-result-item:hover {
+    background-color: #f0f0f0;
+}
+
+.stock-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stock-symbol {
+    font-weight: bold;
+}
+
+.stock-name {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.stock-stats {
+    text-align: right;
+}
+
+.stock-price {
+    font-weight: bold;
+}
+
+.stock-change {
+    font-size: 0.9rem;
+}
+
+.stock-change.positive {
+    color: green;
+}
+
+.stock-change.negative {
+    color: red;
+}
+
+/* User Menu */
+.user-menu {
+    position: relative;
+}
+
+.user-icon img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.user-dropdown {
+    position: absolute;
+    right: 0;
+    top: 110%;
+    background-color: white;
+    color: #333;
+    border-radius: 10px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    min-width: 200px;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.user-dropdown.show {
+    display: flex;
+}
+
+.user-dropdown .user-name {
+    padding: 15px;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+}
+
+.dropdown-link {
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    transition: background-color 0.3s;
+}
+
+.dropdown-link:hover {
+    background-color: #f0f0f0;
+}
+
+.nav-link {
+    color: white;
+    background-color: #ffab00;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.nav-link:hover {
+    background-color: #ff9100;
+}
+
 .hamburger {
     display: none;
     flex-direction: column;
@@ -30,20 +186,60 @@ header h1 {
 .hamburger:hover span {
     background-color: #ffab00;
 }
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-.nav-menu .nav-link {
-    color: white;
-    background-color: #ffab00;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 1rem;
-    transition: background-color 0.3s;
-}
-.nav-menu .nav-link:hover {
-    background-color: #ff9100;
+
+@media (max-width: 768px) {
+    .search-bar {
+        flex: 1;
+        order: 1;
+        margin-right: 10px;
+        width: 100%;
+    }
+
+    .hamburger {
+        display: flex;
+        order: 2;
+    }
+
+    .header-right {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .user-menu {
+        display: none;
+    }
+
+    .nav-link {
+        display: none;
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        right: 20px;
+        background-color: #1c3c80;
+        padding: 15px;
+        border-radius: 10px;
+        width: 200px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transform-origin: top right;
+        transform: scale(0);
+        transition: transform 0.3s ease;
+    }
+
+    .nav-menu.show {
+        transform: scale(1);
+    }
+
+
+    .nav-menu .nav-link {
+        display: block;
+        width: 100%;
+        padding: 10px 15px;
+        text-align: center;
+        margin: 5px 0;
+    }
 }

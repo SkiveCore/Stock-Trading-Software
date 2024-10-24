@@ -119,6 +119,7 @@ $stock = $result->fetch_assoc();
         }
 
         function editDropdownField(field) {
+			console.log(`Editing dropdown field: ${field}`);
             const span = document.querySelector(`.editable[data-field='${field}']`);
             const currentValue = span.textContent;
             const select = document.createElement('select');
@@ -164,6 +165,7 @@ $stock = $result->fetch_assoc();
 
         function updateField(field, value) {
 			const stockId = <?php echo $stock_id; ?>;
+			console.log(`Updating field: ${field}, value: ${value}`); // Add this line
 			fetch('/ASB/update_stock.php', {
 				method: 'POST',
 				headers: {

@@ -30,22 +30,39 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $stockId = $row['stock_id'];
         $currentPrice = $row['current_price'];
-        $fiftyTwoWeekHigh = $row['fifty_two_week_high'];
-        $fiftyTwoWeekLow = $row['fifty_two_week_low'];
         $previousClose = $row['previous_close'];
+
+        // Find the earliest price today if no previous close
+        $earliestPriceTodayQuery = "
+            SELECT price 
+            FROM stock_price_history 
+            WHERE stock_id = $stockId 
+            AND DATE(timestamp) = CURDATE() 
+            ORDER BY timestamp ASC 
+            LIMIT 1";
         list($newPrice, $percentageChange) = calculateNewPrice($currentPrice);
-		$beta = $previousClose ? (($newPrice - $previousClose) / $previousClose) : 0;
+		$beta = ($previousClose && $previousClose != 0) ? (($newPrice - $previousClose) / $previousClose) : 0;
+        $earliestPriceTodayResult = $conn->query($earliestPriceTodayQuery);
+        $earliestPriceToday = $earliestPriceTodayResult->num_rows > 0 ? $earliestPriceTodayResult->fetch_assoc()['price'] : null;
+
+        $referencePrice = (!is_nan($previousClose) && $previousClose != 0) ? $previousClose : ($earliestPriceToday ?: $currentPrice);
+
+        $percentageChangeFromReference = ($referencePrice != 0) ? round((($newPrice - $referencePrice) / $referencePrice) * 100, 2) : 0;
+		#echo "$$percentageChangeFromReference = ($referencePrice != 0) ? round((($newPrice - $referencePrice) / $referencePrice) * 100, 2) : 0;";
+		#echo "<br>$stockId - $percentageChangeFromReference<br>";
         $updateQuery = "
             UPDATE stocks 
             SET current_price = $newPrice,
                 beta = $beta,
-                previous_close = $currentPrice
+				percentage_change = $percentageChangeFromReference
             WHERE stock_id = $stockId";
         $conn->query($updateQuery);
+
         $insertHistoryQuery = "
             INSERT INTO stock_price_history (stock_id, price, change_percentage, timestamp)
             VALUES ($stockId, $newPrice, $percentageChange, NOW())";
         $conn->query($insertHistoryQuery);
+
         update52WeekHighLow($stockId, $newPrice);
     }
 }

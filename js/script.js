@@ -143,10 +143,5 @@ document.addEventListener('DOMContentLoaded', function () {
     updateChart('1d');
 });
 
-function toggleMenu() {
-    const menu = document.querySelector('.nav-menu');
-    const hamburger = document.querySelector('.hamburger');
-    menu.classList.toggle('show');
-    hamburger.classList.toggle('active');
-}
+
 

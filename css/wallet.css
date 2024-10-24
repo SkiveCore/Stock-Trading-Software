@@ -1,0 +1,174 @@
+/* Container for wallet content */
+.wallet-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+/* Section headings */
+.wallet-container h2 {
+    color: #1c3c80;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    text-align: left;
+    border-bottom: 2px solid #ffab00;
+    padding-bottom: 5px;
+}
+
+/* Current balance display */
+.wallet-balance {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 30px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 5px solid #6200ea;
+}
+
+/* Payment methods table */
+.payment-methods-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.payment-methods-table th, .payment-methods-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.payment-methods-table th {
+    background-color: #1c3c80;
+    color: #ffffff;
+}
+
+.payment-methods-table td {
+    background-color: #f4f4f4;
+}
+
+/* Form styles */
+.wallet-form {
+    margin-top: 30px;
+}
+
+.wallet-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    color: #333;
+}
+
+.wallet-form input[type="text"], 
+.wallet-form input[type="password"], 
+.wallet-form input[type="number"], 
+.wallet-form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.wallet-form button[type="submit"] {
+    width: 100%;
+    background-color: #ffab00;
+    color: white;
+    padding: 12px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.wallet-form button[type="submit"]:hover {
+    background-color: #ff9100;
+}
+
+/* Card input wrapper */
+.card-input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.card-input-wrapper input[type="text"] {
+    width: 100%;
+    padding-right: 50px; /* Adjust padding for icon spacing */
+    padding-left: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    height: 40px;
+    box-sizing: border-box;
+}
+
+/* Styling for the card icon */
+.card-icon {
+    position: absolute;
+    right: 10px;
+    font-size: 24px;
+    color: #666;
+    opacity: 0.8;
+    pointer-events: none; /* Prevents interaction */
+    top: 50%;
+    transform: translateY(-70%); /* Center vertically */
+}
+
+/* Styling for the card message (card type text) */
+.card-message {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #333;
+    background-color: #f9f9f9;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border-left: 3px solid #6200ea;
+    display: inline-block;
+    width: auto;
+    margin-left: 10px; /* Add some space between the input field and the message */
+}
+
+/* Adjust margin and spacing for card message when invalid */
+.invalid-card {
+    color: #e74c3c;
+    border-left-color: #e74c3c;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .wallet-container {
+        padding: 20px;
+    }
+
+    .wallet-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .wallet-form input[type="text"], 
+    .wallet-form input[type="password"], 
+    .wallet-form input[type="number"], 
+    .wallet-form select {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .wallet-form button[type="submit"] {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    /* Adjust the icon size for mobile */
+    .card-icon {
+        font-size: 20px;
+    }
+}
