@@ -45,6 +45,8 @@ if (session_status() == PHP_SESSION_NONE) {
                 <div class="user-dropdown" id="user-dropdown">
                     <span class="user-name"><?php echo htmlspecialchars($_SESSION['first_name']); ?></span>
                     <a href="/account.php" class="dropdown-link">Account Details</a>
+                    <a href="/wallet" class="dropdown-link">Wallet</a>
+                    <a href="/transactions" class="dropdown-link">Transactions</a>
                     <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1): ?>
                         <a href="/ASB/index.php" class="dropdown-link">Admin Panel</a>
                     <?php endif; ?>

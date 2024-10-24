@@ -1,4 +1,3 @@
-/* General Styles */
 @import url("/css/googlefonts.css");
 @import url("/css/header.css");
 body {
@@ -167,7 +166,7 @@ h2.center-align {
 }
 
 .qr-section button[type="submit"]:hover, .qr-section .md-filled-button:hover {
-    background-color: #3700b3; /* Darker shade on hover */
+    background-color: #3700b3;
 }
 
 

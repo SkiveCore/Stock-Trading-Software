@@ -17,17 +17,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 borderWidth: 1.5,
                 fill: false,
                 pointRadius: 0,
+                spanGaps: true,
+                segment: {
+                    borderDash: ctx => {
+                        const prevY = ctx.p0.parsed.y;
+                        const nextY = ctx.p1.parsed.y;
+                        if (prevY === null || nextY === null || prevY === NaN || nextY === NaN) {
+                            return [6, 6];
+                        }
+                        return undefined;
+                    },
+                },
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            spanGaps: true,
             scales: {
                 x: {
                     type: 'time',
                     time: {
                         tooltipFormat: 'PPpp',
+                        parser: 'yyyy-MM-dd HH:mm:ss',
+                    },
+                    adapters: {
+                        date: {
+                            zone: 'utc',
+                        }
                     },
                     display: false
                 },
@@ -47,10 +63,10 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             elements: {
                 line: {
-                    tension: 0.2
+                    tension: 0,
                 }
             },
-            animation: false
+            animation: true
         }
     });
 
@@ -58,34 +74,26 @@ document.addEventListener('DOMContentLoaded', function () {
         const stockIdInput = document.querySelector('input[name="stock_id"]');
         const stockId = stockIdInput ? stockIdInput.value : null;
 
-        fetch(`/BackendAutomation/fetchStockHistory.php?stock_id=${stockId}&timeframe=${timeframe}`)
+        fetch(`/BackendAutomation/fetchStockHistory.php?stock_id=${stockId}&timeframe=all`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     let chartData;
                     switch (timeframe) {
                         case '1d':
-                            chartData = buildOptimized1DayData(data.timestamps, data.prices);
-                            break;
                         case '1w':
-                            chartData = buildWeeklyData(data.timestamps, data.prices);
-                            break;
                         case '1m':
-                            chartData = buildMonthlyData(data.timestamps, data.prices);
-                            break;
                         case '3m':
-                            chartData = buildQuarterlyData(data.timestamps, data.prices);
+                        case '1y':
+                            chartData = buildDataWithInterval(data.timestamps, data.prices, timeframe);
                             break;
                         case 'ytd':
                             chartData = buildYTDData(data.timestamps, data.prices);
                             break;
-                        case '1y':
-                            chartData = buildYearlyData(data.timestamps, data.prices);
-                            break;
                         case 'all':
                             chartData = data.timestamps.map((timestamp, index) => ({
-                                x: new Date(timestamp),
-                                y: data.prices[index],
+                                x: new Date(Date.parse(timestamp.replace(' ', 'T') + 'Z')),
+                                y: parseFloat(data.prices[index]),
                             }));
                             break;
                         default:
@@ -112,116 +120,82 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedButton.classList.add('selected');
     }
 
-    function buildOptimized1DayData(timestamps, prices) {
-        const now = new Date();
-        const startOfDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-        const oneDayData = [];
-        const interval = 60; // seconds
+    function buildDataWithInterval(timestamps, prices, timeframe) {
+        const dataPoints = [];
+        const nowUTC = Date.now();
+        let startTime;
+        let intervalMillis;
 
-        for (let second = 0; second < 86400; second += interval) {
-            const timestampMillis = startOfDay + (second * 1000);
-            const timestamp = new Date(timestampMillis);
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timestampMillis) < interval * 1000);
-            const price = index !== -1 ? prices[index] : (oneDayData.length > 0 ? oneDayData[oneDayData.length - 1].y : 0);
-            oneDayData.push({ x: timestamp, y: price });
+        switch (timeframe) {
+            case '1d':
+                const now = new Date(nowUTC);
+                startTime = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+                intervalMillis = 60 * 1000;
+                break;
+            case '1w':
+                startTime = nowUTC - 7 * 24 * 60 * 60 * 1000;
+                intervalMillis = 60 * 60 * 1000;
+                break;
+            case '1m':
+                startTime = nowUTC - 30 * 24 * 60 * 60 * 1000;
+                intervalMillis = 24 * 60 * 60 * 1000;
+                break;
+            case '3m':
+                startTime = nowUTC - 90 * 24 * 60 * 60 * 1000;
+                intervalMillis = 24 * 60 * 60 * 1000;
+                break;
+            case '1y':
+                startTime = nowUTC - 365 * 24 * 60 * 60 * 1000;
+                intervalMillis = 7 * 24 * 60 * 60 * 1000;
+                break;
+            default:
+                startTime = nowUTC - 24 * 60 * 60 * 1000;
+                intervalMillis = 60 * 1000;
+                break;
         }
 
-        return oneDayData;
-    }
+        const dataLength = timestamps.length;
+        let dataIndex = 0;
+        let lastPrice = null;
+        const times = timestamps.map(ts => Date.parse(ts.replace(' ', 'T') + 'Z'));
+        const pricesFloat = prices.map(p => parseFloat(p));
 
-	
-	function buildWeeklyData(timestamps, prices) {
-    const oneWeekData = [];
-    const now = new Date();
-
-    const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
-		const interval = 60 * 60 * 1000; // 1 hour in milliseconds
-		const startTimeUTC = nowUTC - (7 * 24 * 60 * 60 * 1000);
-		for (let hour = 0; hour <= 168; hour++) { // 168 hours in a week
-			const timeMillis = startTimeUTC + (hour * interval);
-			const time = new Date(timeMillis);
-			const index = timestamps.findIndex(ts => {
-				const tsMillis = Date.parse(ts);
-				return Math.abs(tsMillis - timeMillis) < interval;
-			});
-			const price = index !== -1 
-				? prices[index] 
-				: (oneWeekData.length > 0 ? oneWeekData[oneWeekData.length - 1].y : 0);
-			oneWeekData.push({ 
-				x: new Date(time), // Ensure the date is in UTC
-				y: price 
-			});
-		}
-		return oneWeekData;
-	}
-
-    function buildMonthlyData(timestamps, prices) {
-        const oneMonthData = [];
-        const now = new Date();
-        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-        const startTime = now.getTime() - (30 * interval);
-
-        for (let day = 0; day < 30; day++) {
-            const timeMillis = startTime + (day * interval);
-            const time = new Date(timeMillis);
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
-            const price = index !== -1 ? prices[index] : (oneMonthData.length > 0 ? oneMonthData[oneMonthData.length - 1].y : 0);
-            oneMonthData.push({ x: time, y: price });
+        for (let time = startTime; time <= nowUTC; time += intervalMillis) {
+            while (dataIndex < dataLength && times[dataIndex] <= time) {
+                lastPrice = pricesFloat[dataIndex];
+                dataIndex++;
+            }
+            const y = (lastPrice !== null) ? lastPrice : null;
+            dataPoints.push({ x: new Date(time), y: y });
         }
 
-        return oneMonthData;
-    }
-
-    function buildQuarterlyData(timestamps, prices) {
-        const threeMonthsData = [];
-        const now = new Date();
-        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-        const startTime = now.getTime() - (90 * interval);
-
-        for (let day = 0; day < 90; day++) {
-            const timeMillis = startTime + (day * interval);
-            const time = new Date(timeMillis);
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
-            const price = index !== -1 ? prices[index] : (threeMonthsData.length > 0 ? threeMonthsData[threeMonthsData.length - 1].y : 0);
-            threeMonthsData.push({ x: time, y: price });
-        }
-
-        return threeMonthsData;
+        return dataPoints;
     }
 
     function buildYTDData(timestamps, prices) {
-        const ytdData = [];
+        const dataPoints = [];
         const now = new Date();
+        const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
         const startOfYear = Date.UTC(now.getUTCFullYear(), 0, 1);
-        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-        const daysSinceStartOfYear = Math.floor((now.getTime() - startOfYear) / interval);
+        const intervalMillis = 24 * 60 * 60 * 1000; // 1 day
 
-        for (let day = 0; day <= daysSinceStartOfYear; day++) {
-            const timeMillis = startOfYear + (day * interval);
-            const time = new Date(timeMillis);
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
-            const price = index !== -1 ? prices[index] : (ytdData.length > 0 ? ytdData[ytdData.length - 1].y : 0);
-            ytdData.push({ x: time, y: price });
+        const dataLength = timestamps.length;
+        let dataIndex = 0;
+        let lastPrice = null;
+
+        const times = timestamps.map(ts => Date.parse(ts.replace(' ', 'T') + 'Z'));
+        const pricesFloat = prices.map(p => parseFloat(p));
+
+        for (let time = startOfYear; time <= nowUTC; time += intervalMillis) {
+            while (dataIndex < dataLength && times[dataIndex] <= time) {
+                lastPrice = pricesFloat[dataIndex];
+                dataIndex++;
+            }
+            const y = (lastPrice !== null) ? lastPrice : null;
+            dataPoints.push({ x: new Date(time), y: y });
         }
 
-        return ytdData;
-    }
-
-    function buildYearlyData(timestamps, prices) {
-        const oneYearData = [];
-        const now = new Date();
-        const interval = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-        const startTime = now.getTime() - (365 * interval);
-
-        for (let day = 0; day < 365; day++) {
-            const timeMillis = startTime + (day * interval);
-            const time = new Date(timeMillis);
-            const index = timestamps.findIndex(ts => Math.abs(new Date(ts).getTime() - timeMillis) < interval);
-            const price = index !== -1 ? prices[index] : (oneYearData.length > 0 ? oneYearData[oneYearData.length - 1].y : 0);
-            oneYearData.push({ x: time, y: price });
-        }
-
-        return oneYearData;
+        return dataPoints;
     }
 
     updateStockChart('1d');

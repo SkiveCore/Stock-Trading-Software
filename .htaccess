@@ -26,4 +26,5 @@ ServerSignature Off
 
 RewriteEngine On
 RewriteRule ^wallet$ wallet.php [L]
+RewriteRule ^transactions$ transactions.php [L]
 RewriteRule ^(@?)([a-zA-Z0-9]+)$ stocks.php?symbol=$2 [L,QSA]

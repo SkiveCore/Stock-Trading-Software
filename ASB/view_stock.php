@@ -165,7 +165,7 @@ $stock = $result->fetch_assoc();
 
         function updateField(field, value) {
 			const stockId = <?php echo $stock_id; ?>;
-			console.log(`Updating field: ${field}, value: ${value}`); // Add this line
+			console.log(`Updating field: ${field}, value: ${value}`);
 			fetch('/ASB/update_stock.php', {
 				method: 'POST',
 				headers: {

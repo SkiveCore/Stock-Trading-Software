@@ -3,22 +3,19 @@ require_once '../includes/db_connect.php';
 
 function calculateNewPrice($currentPrice) {
     $eventProbability = rand(0, 1000);
-    $percentageChange = 0;
     if ($eventProbability < 5) {
         $percentageChange = (rand(-300, -100) / 1000);
     } elseif ($eventProbability >= 5 && $eventProbability < 10) {
         $percentageChange = (rand(100, 300) / 1000);
     } else {
-        $percentageChange = (rand(-20, 20) / 1000);
+        $percentageChange = (rand(-15, 20) / 1000);
     }
 
     $priceChange = $currentPrice * $percentageChange;
     $newPrice = $currentPrice + $priceChange;
-    if ($newPrice < 0.1 * $currentPrice) {
-        $newPrice = 0.1 * $currentPrice;
-    } elseif ($newPrice > 2 * $currentPrice) {
-        $newPrice = 2 * $currentPrice;
-    }
+
+    $maxChange = 0.10 * $currentPrice;
+    $newPrice = max($currentPrice - $maxChange, min($newPrice, $currentPrice + $maxChange));
 
     return [$newPrice, $percentageChange * 100];
 }
@@ -31,8 +28,6 @@ if ($result->num_rows > 0) {
         $stockId = $row['stock_id'];
         $currentPrice = $row['current_price'];
         $previousClose = $row['previous_close'];
-
-        // Find the earliest price today if no previous close
         $earliestPriceTodayQuery = "
             SELECT price 
             FROM stock_price_history 
@@ -48,8 +43,6 @@ if ($result->num_rows > 0) {
         $referencePrice = (!is_nan($previousClose) && $previousClose != 0) ? $previousClose : ($earliestPriceToday ?: $currentPrice);
 
         $percentageChangeFromReference = ($referencePrice != 0) ? round((($newPrice - $referencePrice) / $referencePrice) * 100, 2) : 0;
-		#echo "$$percentageChangeFromReference = ($referencePrice != 0) ? round((($newPrice - $referencePrice) / $referencePrice) * 100, 2) : 0;";
-		#echo "<br>$stockId - $percentageChangeFromReference<br>";
         $updateQuery = "
             UPDATE stocks 
             SET current_price = $newPrice,

@@ -1,0 +1,160 @@
+.trading-dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.chart-container {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex: 2;
+    min-width: 300px;
+}
+.timeframe-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 15px;
+    padding-bottom: 10px;
+}
+
+.time-button {
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s ease, text-shadow 0.3s;
+    border: none;
+    background: none;
+}
+
+.time-button.selected {
+    color: #00ff00;
+    text-shadow: 0 0 8px #00ff00;
+}
+
+.account-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f4f4f4;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.stock-list {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    min-width: 300px;
+	margin-left:0px;
+}
+
+.stock-list h3 {
+    font-size: 1.4rem;
+    border-bottom: 2px solid #007bff;
+    margin-bottom: 15px;
+}
+
+.stock-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.stock-list li {
+    background-color: #f7f7f7;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s;
+}
+
+.stock-list li:hover {
+    background-color: #e9ecef;
+}
+
+.stock-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+.stock-item {
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s;
+}
+
+.stock-item:hover {
+    background-color: #f0f0f0;
+}
+
+@media (max-width: 768px) {
+    .trading-dashboard-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .chart-container,
+    .stock-list {
+        width: 100%;
+        margin-bottom: 15px;
+        max-width: 500px;
+    }
+
+    .time-button {
+        font-size: 1rem;
+        padding: 6px 10px;
+    }
+
+    .account-info {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+
+    .stock-list h3 {
+        font-size: 1.2rem;
+    }
+
+    .stock-list li {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .timeframe-buttons {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .time-button {
+        width: 100%;
+        text-align: left;
+        padding: 5px;
+    }
+
+    .account-info p {
+        font-size: 0.9rem;
+    }
+
+    .stock-list {
+        margin-top: 20px;
+        max-width: 100%;
+    }
+
+    .stock-list h3 {
+        font-size: 1rem;
+    }
+
+    .stock-list li {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+}
