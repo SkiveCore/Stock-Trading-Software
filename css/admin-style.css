@@ -1,16 +1,20 @@
 .container {
     max-width: 1200px;
-    margin: 20px auto;
+    margin: 40px auto;
     padding: 20px;
     background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 h2 {
     text-align: center;
     color: #1c3c80;
-    margin-bottom: 20px;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #1c3c80;
+    padding-bottom: 10px;
 }
 
 .stock-table {
@@ -223,7 +227,344 @@ button:hover {
 
 
 
+.tabs {
+    display: flex;
+    justify-content: space-between;
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.tab-button {
+    flex: 1;
+    padding: 12px 0;
+    cursor: pointer;
+    background-color: transparent;
+    color: #1c3c80;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.tab-button:not(:last-child) {
+    margin-right: 5px;
+}
+
+.tab-button:hover,
+.tab-button.active {
+    background-color: #1c3c80;
+    color: #ffffff;
+}
+
+.tab-button.active {
+    background-color: #ffab00;
+    color: #ffffff;
+}
+.tab-content {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-content h3 {
+    margin-top: 0;
+    font-size: 1.5rem;
+    color: #1c3c80;
+    border-bottom: 2px solid #1c3c80;
+    padding-bottom: 5px;
+}
+
+
+
+
+.day-schedule {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    gap: 20px;
+}
+
+.day-schedule h4 {
+    flex: 0 0 100px;
+    margin: 0;
+    font-size: 1rem;
+    color: #1c3c80;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.schedule-item label {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.schedule-item input[type="time"],
+.schedule-item input[type="checkbox"] {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.schedule-item input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-left: 5px;
+}
+
+button[type="submit"] {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background-color: #1c3c80;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+
+
+#market-calendar {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#today-btn {
+    padding: 5px 12px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+#today-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #bbb;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #333;
+    padding: 5px;
+}
+
+.nav-btn:hover {
+    background-color: #f0f0f0;
+    border-radius: 50%;
+}
+
+#calendar-month-year {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1c3c80;
+}
+
+#calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#calendar-table th,
+#calendar-table td {
+    width: 14.28%;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+#calendar-table th {
+    background-color: #f0f0f0;
+    color: #1c3c80;
+}
+
+#calendar-table td {
+    height: 80px;
+    vertical-align: top;
+}
+
+#calendar-table td.disabled {
+    background-color: #f9f9f9;
+    color: #ccc;
+}
+
+#calendar-table td:hover {
+    background-color: #fffae6;
+    cursor: pointer;
+}
+
+.today {
+    background-color: #fffae6;
+    border: 2px solid #ffa500;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #333;
+}
+
+.today:hover {
+    background-color: #ffe6b3;
+    cursor: pointer;
+}
+
+
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+h3 {
+    margin-top: 0;
+    color: #1c3c80;
+}
+
+form label {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+form input, form select, form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 0.9rem;
+}
+
+form button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    background-color: #1c3c80;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #0056b3;
+}
+
+.event-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+.event-item {
+    background-color: #e6f4ea;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.event-time {
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.event-title {
+    color: #333;
+}
+
+
+
 @media (max-width: 768px) {
+	
+    .day-schedule {
+        flex-wrap: wrap;
+    }
+    .schedule-item {
+        flex: 1 1 auto;
+    }
+    .schedule-item label {
+        margin-right: 10px;
+        margin-bottom: 0;
+    }
+	
+	
+	
+	
+	.tabs {
+        flex-direction: column;
+        padding: 0;
+    }
+
+    .tab-button {
+        margin-bottom: 10px;
+    }
+
+    .tab-button:not(:last-child) {
+        margin-right: 0;
+    }
     .price-section, .market-volume-section {
         flex-direction: column;
     }
