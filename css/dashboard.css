@@ -80,19 +80,62 @@
 }
 
 .stock-link {
-    display: block;
+    display: flex;
+    flex-direction: column;
     text-decoration: none;
     color: inherit;
-    width: 100%;
 }
 
 .stock-item {
     border-bottom: 1px solid #ddd;
     transition: background-color 0.3s;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .stock-item:hover {
     background-color: #f0f0f0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.stock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.stock-symbol {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+}
+.stock-name {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.stock-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stock-price-quantity {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stock-price {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: bold;
+}
+
+.stock-quantity {
+    font-size: 0.9rem;
+    color: #555;
 }
 
 @media (max-width: 768px) {

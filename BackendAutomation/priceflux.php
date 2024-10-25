@@ -8,14 +8,18 @@ function calculateNewPrice($currentPrice) {
     } elseif ($eventProbability >= 5 && $eventProbability < 10) {
         $percentageChange = (rand(100, 300) / 1000);
     } else {
-        $percentageChange = (rand(-15, 20) / 1000);
+        $percentageChange = (rand(-21, 21) / 1000);
     }
 
     $priceChange = $currentPrice * $percentageChange;
     $newPrice = $currentPrice + $priceChange;
 
     $maxChange = 0.10 * $currentPrice;
-    $newPrice = max($currentPrice - $maxChange, min($newPrice, $currentPrice + $maxChange));
+    if ($newPrice < 0.5 * $currentPrice) {
+        $newPrice = 0.5 * $currentPrice;
+    } elseif ($newPrice > 1.5 * $currentPrice) {
+        $newPrice = 1.5 * $currentPrice;
+    }
 
     return [$newPrice, $percentageChange * 100];
 }

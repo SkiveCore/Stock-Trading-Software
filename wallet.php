@@ -22,13 +22,32 @@ if ($wallet) {
 $encryption_key = getenv('AES_ENCRYPTION_KEY');
 $sql_methods = "SELECT id, payment_type, card_holder_name, AES_DECRYPT(card_number, ?) AS card_number, card_expiry 
                 FROM user_payment_methods 
-                WHERE user_id = ?";
+                WHERE user_id = ? AND is_anonymized = 0";
 $stmt_methods = $conn->prepare($sql_methods);
 $stmt_methods->bind_param('si', $encryption_key, $user_id);
 $stmt_methods->execute();
 $payment_methods = $stmt_methods->get_result();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	if (isset($_POST['add_method'])) {
+	if (isset($_POST['delete_method'])) {
+		$method_id = $_POST['method_id'];
+
+		// Anonymize the payment method
+		$sql_anonymize = "UPDATE user_payment_methods 
+						  SET card_holder_name = 'Deleted', 
+							  card_number = AES_ENCRYPT('0000000000000000', ?), 
+							  card_expiry = '1970-01-01', 
+							  is_anonymized = 1 
+						  WHERE id = ? AND user_id = ?";
+		$stmt_anonymize = $conn->prepare($sql_anonymize);
+		$stmt_anonymize->bind_param('sii', $encryption_key, $method_id, $user_id);
+
+		if ($stmt_anonymize->execute()) {
+			header('Location: wallet.php');
+			exit();
+		} else {
+			die("Error anonymizing payment method: " . $stmt_anonymize->error);
+		}
+	} elseif (isset($_POST['add_method'])) {
 		$payment_type = $_POST['payment_type'];
 		$card_holder_name = $_POST['card_holder_name'];
 		$card_number = str_replace(' ', '', $_POST['card_number']);
@@ -140,70 +159,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <?php 
-	include "includes/header.php";
-    ?>
+    <?php include "includes/header.php"; ?>
 	<div class="wallet-container">
-		<h1>My Wallet</h1>
-		<p class="wallet-balance">Current Balance: $<?php echo number_format((float)$balance, 2); ?></p>
-		<h2>Payment Methods</h2>
-		<table class="payment-methods-table">
-			<tr>
-				<th>Type</th>
-				<th>Card Holder Name</th>
-				<th>Card Number</th>
-				<th>Expiry Date</th>
-			</tr>
-			<?php while ($method = $payment_methods->fetch_assoc()): ?>
-			<tr>
-				<td><?php echo htmlspecialchars($method['payment_type']); ?></td>
-				<td><?php echo htmlspecialchars($method['card_holder_name']); ?></td>
-				<td><?php echo '**** **** **** ' . substr($method['card_number'], -4); ?></td>
-				<td><?php echo htmlspecialchars($method['card_expiry']); ?></td>
-			</tr>
-			<?php endwhile; ?>
-		</table>
-		<h2>Add Payment Method</h2>
-		<form action="wallet.php" method="post" class="wallet-form">
-			<label for="payment_type">Payment Type:</label>
-			<select name="payment_type" id="payment_type" required>
-				<option value="credit_card">Credit Card</option>
-				<option value="debit_card">Debit Card</option>
-				<option value="bank_account">Bank Account</option>
-			</select>
-			<label for="card_holder_name">Card Holder Name:</label>
-			<input type="text" name="card_holder_name" id="card_holder_name" required>
-			<label for="card_number">Card Number:</label>
-			<div class="card-input-wrapper">
-				<input type="text" name="card_number" id="card_number" required placeholder="1234 5678 9012 3456">
-				<i class="fas fa-credit-card card-icon" id="card_logo" style="display: none;"></i>
-			</div>
-			<small id="card_type" class="card-message"></small>
-			<label for="card_expiry">Expiry Date (MM/YY):</label>
-			<input type="text" name="card_expiry" id="card_expiry" placeholder="MM/YY" required>
-			<label for="card_cvv">CVV:</label>
-			<input type="password" name="card_cvv" id="card_cvv" maxlength="4" placeholder="123" required>
-			<button type="submit" name="add_method">Add Payment Method</button>
-		</form>
-		<h2>Load Wallet</h2>
-		<form action="wallet.php" method="post" class="wallet-form">
-			<label for="amount">Amount:</label>
-			<input type="number" name="amount" step="0.01" min="0.01" required>
+        <h1>My Wallet</h1>
+        <p class="wallet-balance">Current Balance: $<?php echo number_format((float)$balance, 2); ?></p>
 
-			<label for="payment_method">Select Payment Method:</label>
-			<select name="payment_method" required>
-				<option value="">Select</option>
-				<?php
-				$payment_methods->data_seek(0);
-				while ($method = $payment_methods->fetch_assoc()): ?>
-					<option value="<?php echo $method['id']; ?>"><?php echo '**** **** **** ' . substr($method['card_number'], -4); ?></option>
-				<?php endwhile; ?>
-			</select>
-			<button type="submit" name="load_wallet">Load Wallet</button>
-		</form>
-	</div>
+        <h2>Load Wallet</h2>
+        <form action="wallet.php" method="post" class="wallet-form">
+            <label for="amount">Amount:</label>
+            <input type="number" name="amount" step="0.01" min="0.01" required>
+            <label for="payment_method">Select Payment Method:</label>
+            <select name="payment_method" required>
+                <option value="">Select</option>
+                <?php
+                $payment_methods->data_seek(0);
+                while ($method = $payment_methods->fetch_assoc()): ?>
+                    <option value="<?php echo $method['id']; ?>"><?php echo '**** **** **** ' . substr($method['card_number'], -4); ?></option>
+                <?php endwhile; ?>
+            </select>
+            <button type="submit" name="load_wallet">Load Wallet</button>
+        </form>
+
+        <h2>Payment Methods</h2>
+        <table class="payment-methods-table">
+            <tr>
+                <th>Type</th>
+                <th>Card Holder Name</th>
+                <th>Card Number</th>
+                <th>Expiry Date</th>
+                <th>Actions</th>
+            </tr>
+            <?php $payment_methods->data_seek(0);
+			while ($method = $payment_methods->fetch_assoc()): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($method['payment_type']); ?></td>
+                <td><?php echo htmlspecialchars($method['card_holder_name']); ?></td>
+                <td><?php echo '**** **** **** ' . substr($method['card_number'], -4); ?></td>
+                <td><?php echo htmlspecialchars($method['card_expiry']); ?></td>
+                <td>
+                    <form action="wallet.php" method="post" style="display:inline;">
+                        <input type="hidden" name="method_id" value="<?php echo $method['id']; ?>">
+                        <button type="submit" name="delete_method" class="delete-button">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+        </table>
+
+        <h2><button id="toggle-add-method">Add Payment Method</button></h2>
+        <form action="wallet.php" method="post" class="wallet-form" id="add-method-form" style="display: none;">
+            <label for="payment_type">Payment Type:</label>
+            <select name="payment_type" id="payment_type" required>
+                <option value="credit_card">Credit Card</option>
+                <option value="debit_card">Debit Card</option>
+                <option value="bank_account">Bank Account</option>
+            </select>
+            <label for="card_holder_name">Card Holder Name:</label>
+            <input type="text" name="card_holder_name" id="card_holder_name" required>
+            <label for="card_number">Card Number:</label>
+            <div class="card-input-wrapper">
+                <input type="text" name="card_number" id="card_number" required placeholder="1234 5678 9012 3456">
+                <i class="fas fa-credit-card card-icon" id="card_logo" style="display: none;"></i>
+            </div>
+            <small id="card_type" class="card-message"></small>
+            <label for="card_expiry">Expiry Date (MM/YY):</label>
+            <input type="text" name="card_expiry" id="card_expiry" placeholder="MM/YY" required>
+            <label for="card_cvv">CVV:</label>
+            <input type="password" name="card_cvv" id="card_cvv" maxlength="4" placeholder="123" required>
+            <button type="submit" name="add_method">Add Payment Method</button>
+        </form>
+    </div>
 	<script>
 document.addEventListener('DOMContentLoaded', function () {
+	const toggleButton = document.getElementById('toggle-add-method');
+	const addMethodForm = document.getElementById('add-method-form');
+
+	toggleButton.addEventListener('click', function () {
+		if (addMethodForm.style.display === 'none') {
+			addMethodForm.style.display = 'block';
+		} else {
+			addMethodForm.style.display = 'none';
+		}
+	});
     const cardNumberInput = document.getElementById('card_number');
     const cardTypeDisplay = document.getElementById('card_type');
     const cardExpiryInput = document.getElementById('card_expiry');

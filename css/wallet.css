@@ -149,6 +149,36 @@
     background-color: #ffab00;
     pointer-events: none;
 }
+.delete-button {
+    background-color: #6a1b9a;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.delete-button:hover {
+    background-color: #8e24aa;
+}
+#toggle-add-method {
+    background-color: #1c3c80;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 1rem;
+    display: block;
+    margin: 10px 0;
+}
+
+#toggle-add-method:hover {
+    background-color: #ff9100;
+}
 
 @media (max-width: 768px) {
     .wallet-container {

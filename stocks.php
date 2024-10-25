@@ -36,15 +36,22 @@ if ($symbol) {
 }
 
 $cash_balance = 0;
-/*if (isset($_SESSION['user_id'])) {
-    $user_id = intval($_SESSION['user_id']);
-    $user_query = "SELECT cash_balance FROM users WHERE user_id = $user_id";
-    $user_result = $conn->query($user_query);
-    if ($user_result) {
-        $user = $user_result->fetch_assoc();
-        $cash_balance = $user['cash_balance'];
-    }
-}*/
+$user_id = $_SESSION['user_id'] ?? 0;
+
+$cash_balance = 0;
+$query = "SELECT balance, currency FROM user_wallets WHERE user_id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$wallet = $result->fetch_assoc();
+
+if ($wallet) {
+    $cash_balance = $wallet['balance'];
+}
+$buffer = 1.05;
+$max_quantity = floor($cash_balance / ($stock['current_price'] * $buffer));
+$message = isset($_GET['message']) ? htmlspecialchars(urldecode($_GET['message'])) : null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -58,7 +65,16 @@ $cash_balance = 0;
     <?php include "includes/header.php"; ?>
     <div class="stock-performance-container">
         <h2>Stock Performance - <?php echo htmlspecialchars($stock['company_name'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($stock['ticker_symbol'] ?? 'N/A'); ?>)</h2>
-        
+    	<?php if (isset($_SESSION['message'])): ?>
+			<div class="message-container <?php echo $_SESSION['message_type']; ?>">
+				<p><?php echo $_SESSION['message']; ?></p>
+			</div>
+			<?php 
+			// Clear the message after displaying it
+			unset($_SESSION['message']);
+			unset($_SESSION['message_type']);
+		endif;
+		?>
         <div class="content-wrapper">
             <div class="chart-container">
                 <canvas id="stockPerformanceChart"></canvas>
@@ -83,7 +99,7 @@ $cash_balance = 0;
 					<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
 					<div class="form-group">
 						<label for="quantity">Quantity:</label>
-						<input type="number" id="quantity" name="quantity" min="1" max="<?php echo floor($cash_balance / $stock['current_price']); ?>" required autocomplete="off">
+						<input type="number" id="quantity" name="quantity" min="1" max="<?php echo $max_quantity; ?>" required autocomplete="off">
 					</div>
 					<p class="total-cost">Total Cost: $0.00</p>
 					<button type="submit" class="buy-button">Buy</button>
@@ -151,13 +167,28 @@ $cash_balance = 0;
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
 			const quantityInput = document.getElementById('quantity');
+			const maxQuantity = <?php echo $max_quantity; ?>;
+			const minQuantity = 1;
 			const totalCostElement = document.querySelector('.total-cost');
 			const stockPrice = <?php echo $stock['current_price']; ?>;
-
 			quantityInput.addEventListener('input', function () {
-				const quantity = parseInt(this.value, 10) || 0;
+				let quantity = parseInt(quantityInput.value, 10);
+				if (isNaN(quantity) || quantity < minQuantity) {
+					quantityInput.value = 0;
+				}
+				else if (quantity > maxQuantity) {
+					quantityInput.value = maxQuantity;
+				}
+				quantity = parseInt(quantityInput.value, 10);
 				const totalCost = (quantity * stockPrice).toFixed(2);
 				totalCostElement.textContent = `Total Cost: $${totalCost}`;
+			});
+			document.querySelector('form').addEventListener('submit', function (e) {
+				let quantity = parseInt(quantityInput.value, 10);
+				if (isNaN(quantity) || quantity < minQuantity || quantity > maxQuantity) {
+					e.preventDefault();
+					alert(`Invalid quantity. Please enter a value between ${minQuantity} and ${maxQuantity}.`);
+				}
 			});
 		});
 	</script>
