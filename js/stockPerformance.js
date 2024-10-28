@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 borderWidth: 1.5,
                 fill: false,
                 pointRadius: 0,
-                spanGaps: true,
+                spanGaps: false,
                 segment: {
                     borderDash: ctx => {
                         const prevY = ctx.p0.parsed.y;
@@ -198,64 +198,69 @@ document.addEventListener('DOMContentLoaded', function () {
         return annotations;
     }
 
-    function buildDataWithInterval(timestamps, prices, timeframe) {
-        const dataPoints = [];
-        const now = Date.now();
-        let startTime;
-        let intervalMillis;
+	function buildDataWithInterval(timestamps, prices, timeframe) {
+		const dataPoints = [];
+		const now = Date.now();
+		
+		let startTime;
+		let intervalMillis;
 
-        switch (timeframe) {
-            case '1d': {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                startTime = today.getTime();
-                intervalMillis = 60 * 1000;
-                break;
-            }
-            case '1w': {
-                startTime = now - 7 * 24 * 60 * 60 * 1000;
-                intervalMillis = 60 * 60 * 1000;
-                break;
-            }
-            case '1m': {
-                startTime = now - 30 * 24 * 60 * 60 * 1000;
-                intervalMillis = 24 * 60 * 60 * 1000;
-                break;
-            }
-            case '3m': {
-                startTime = now - 90 * 24 * 60 * 60 * 1000;
-                intervalMillis = 24 * 60 * 60 * 1000;
-                break;
-            }
-            case '1y': {
-                startTime = now - 365 * 24 * 60 * 60 * 1000;
-                intervalMillis = 7 * 24 * 60 * 60 * 1000;
-                break;
-            }
-            default: {
-                startTime = now - 24 * 60 * 60 * 1000;
-                intervalMillis = 60 * 1000;
-                break;
-            }
-        }
+		switch (timeframe) {
+			case '1d': {
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				startTime = today.getTime();
+				intervalMillis = 60 * 1000;
+				break;
+			}
+			case '1w': {
+				startTime = now - 7 * 24 * 60 * 60 * 1000;
+				intervalMillis = 60 * 60 * 1000;
+				break;
+			}
+			case '1m': {
+				startTime = now - 30 * 24 * 60 * 60 * 1000;
+				intervalMillis = 24 * 60 * 60 * 1000;
+				break;
+			}
+			case '3m': {
+				startTime = now - 90 * 24 * 60 * 60 * 1000;
+				intervalMillis = 24 * 60 * 60 * 1000;
+				break;
+			}
+			case '1y': {
+				startTime = now - 365 * 24 * 60 * 60 * 1000;
+				intervalMillis = 7 * 24 * 60 * 60 * 1000;
+				break;
+			}
+			default: {
+				startTime = now - 24 * 60 * 60 * 1000;
+				intervalMillis = 60 * 1000;
+				break;
+			}
+		}
 
-        const dataLength = timestamps.length;
-        let dataIndex = 0;
-        let lastPrice = null;
+		const dataLength = timestamps.length;
+		let dataIndex = 0;
+		let lastPrice = null;
 
-        const times = timestamps.map(ts => parseTimestamp(ts).getTime());
-        const pricesFloat = prices.map(p => parseFloat(p));
+		const times = timestamps.map(ts => parseTimestamp(ts).getTime());
+		const pricesFloat = prices.map(p => parseFloat(p));
 
-        for (let time = startTime; time <= now; time += intervalMillis) {
-            while (dataIndex < dataLength && times[dataIndex] <= time) {
-                lastPrice = pricesFloat[dataIndex];
-                dataIndex++;
-            }
-            const y = lastPrice !== null ? lastPrice : null;
-            dataPoints.push({ x: new Date(time), y: y });
-        }
+		if (times[0] > startTime) {
+			startTime = times[0];
+		}
 
-        return dataPoints;
+		for (let time = startTime; time <= now; time += intervalMillis) {
+			while (dataIndex < dataLength && times[dataIndex] <= time) {
+				lastPrice = pricesFloat[dataIndex];
+				dataIndex++;
+			}
+			const y = lastPrice !== null ? lastPrice : null;
+			dataPoints.push({ x: new Date(time), y: y });
+		}
+
+		return dataPoints;
     }
 
     function buildYTDData(timestamps, prices) {

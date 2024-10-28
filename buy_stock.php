@@ -3,12 +3,14 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 require_once 'includes/db_connect.php';
+
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['message'] = 'Error: You need to log in to perform this action.';
     $_SESSION['message_type'] = 'error';
     header("Location: /login.php");
     exit();
 }
+
 function redirectToPreviousPage($fallbackUrl = '/') {
     if (isset($_SERVER['HTTP_REFERER'])) {
         header("Location: " . $_SERVER['HTTP_REFERER']);
@@ -17,6 +19,18 @@ function redirectToPreviousPage($fallbackUrl = '/') {
     }
     exit();
 }
+
+function isMarketOpen($conn) {
+    $day_of_week = date('l');
+    $current_time = date('H:i:s');
+    $query = "SELECT * FROM default_market_hours WHERE day_of_week = ? AND is_open = 1 AND open_time <= ? AND close_time >= ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sss", $day_of_week, $current_time, $current_time);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0;
+}
+
 $user_id = $_SESSION['user_id'];
 if (!isset($_POST['stock_id'], $_POST['quantity']) || !is_numeric($_POST['quantity'])) {
     $_SESSION['message'] = 'Error: Invalid request.';
@@ -24,6 +38,7 @@ if (!isset($_POST['stock_id'], $_POST['quantity']) || !is_numeric($_POST['quanti
     redirectToPreviousPage();
     exit();
 }
+
 $stock_id = intval($_POST['stock_id']);
 $quantity = intval($_POST['quantity']);
 $query = "SELECT * FROM stocks WHERE stock_id = ?";
@@ -42,6 +57,7 @@ if (!$stock) {
 $current_price = $stock['current_price'];
 $ticker_symbol = $stock['ticker_symbol'];
 $total_cost = $current_price * $quantity;
+
 if ($quantity <= 0) {
     $_SESSION['message'] = 'Error: Invalid quantity value.';
     $_SESSION['message_type'] = 'error';
@@ -49,7 +65,6 @@ if ($quantity <= 0) {
     exit();
 }
 
-// Fetch the user's wallet balance
 $query = "SELECT balance FROM user_wallets WHERE user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
@@ -66,7 +81,6 @@ if (!$wallet) {
 
 $cash_balance = $wallet['balance'];
 
-// Server-side validation: Ensure the user has sufficient funds (5% buffer)
 if ($total_cost > ($cash_balance * 0.95)) {
     $_SESSION['message'] = 'Error: Insufficient funds to complete the purchase.';
     $_SESSION['message_type'] = 'error';
@@ -74,39 +88,38 @@ if ($total_cost > ($cash_balance * 0.95)) {
     exit();
 }
 
-// Deduct the total cost from the user's wallet balance
-$new_balance = $cash_balance - $total_cost;
+$transaction_status = isMarketOpen($conn) ? 'completed' : 'pending';
 
-// Begin a transaction
 $conn->begin_transaction();
 
 try {
-    // Update the wallet balance
-    $update_query = "UPDATE user_wallets SET balance = ?, updated_at = NOW() WHERE user_id = ?";
-    $update_stmt = $conn->prepare($update_query);
-    $update_stmt->bind_param("di", $new_balance, $user_id);
-    $update_stmt->execute();
+    if ($transaction_status === 'completed') {
+        $new_balance = $cash_balance - $total_cost;
+        $update_query = "UPDATE user_wallets SET balance = ?, updated_at = NOW() WHERE user_id = ?";
+        $update_stmt = $conn->prepare($update_query);
+        $update_stmt->bind_param("di", $new_balance, $user_id);
+        $update_stmt->execute();
+    }
 
-    // Insert the transaction record (log the purchase)
-    $transaction_query = "INSERT INTO user_stock_transactions (user_id, stock_id, transaction_type, quantity, price_per_share, transaction_date, status) VALUES (?, ?, 'purchase', ?, ?, NOW(), 'completed')";
+    $transaction_query = "INSERT INTO user_stock_transactions (user_id, stock_id, transaction_type, quantity, price_per_share, transaction_date, status) VALUES (?, ?, 'purchase', ?, ?, NOW(), ?)";
     $transaction_stmt = $conn->prepare($transaction_query);
-    $transaction_stmt->bind_param("iiid", $user_id, $stock_id, $quantity, $current_price);
+    $transaction_stmt->bind_param("iiids", $user_id, $stock_id, $quantity, $current_price, $transaction_status);
     $transaction_stmt->execute();
 
-    // Commit the transaction
     $conn->commit();
 
-    // Set success message
-    $_SESSION['message'] = "Purchase successful! You bought $quantity shares at $$current_price each.";
-    $_SESSION['message_type'] = 'success';
+    if ($transaction_status === 'completed') {
+        $_SESSION['message'] = "Purchase successful! You bought $quantity shares at $$current_price each.";
+        $_SESSION['message_type'] = 'success';
+    } else {
+        $_SESSION['message'] = "Purchase placed successfully but is pending. The transaction will be processed when the market opens.";
+        $_SESSION['message_type'] = 'info';
+    }
+
     header("Location: /$ticker_symbol");
     exit();
 
-    // Close the prepared statements
-    $update_stmt->close();
-    $transaction_stmt->close();
 } catch (Exception $e) {
-    // Roll back the transaction if something goes wrong
     $conn->rollback();
     $_SESSION['message'] = 'Error: Purchase could not be completed. Please try again later.';
     $_SESSION['message_type'] = 'error';
@@ -114,6 +127,5 @@ try {
     exit();
 }
 
-// Close the database connection
 $conn->close();
 ?>

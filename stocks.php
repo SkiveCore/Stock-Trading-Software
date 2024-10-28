@@ -71,9 +71,7 @@ curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 $chart_image_response = curl_exec($ch);
 
 if (curl_errno($ch)) {
-    echo "cURL error: " . curl_error($ch);
     curl_close($ch);
-    exit();
 }
 
 curl_close($ch);
