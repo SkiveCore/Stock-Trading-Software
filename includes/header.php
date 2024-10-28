@@ -8,14 +8,16 @@ if (session_status() == PHP_SESSION_NONE) {
         <h1><a href="/index.php">ZNCTech</a></h1>
     </div>
     <div class="search-bar">
-        <input type="text" id="stock-search" placeholder="Search stocks..." autocomplete="off">
+        <form action="search.php" method="GET" id="search-form">
+            <input type="text" id="stock-search" name="query" placeholder="Search stocks..." autocomplete="off">
+        </form>
         <div class="search-results" id="search-results"></div>
     </div>
     <div class="header-right">
-        <div class="user-menu">
+        <div class="user-menu" tabindex="0">
             <?php if (isset($_SESSION['user_id'])): ?>
                 <div class="user-icon" onclick="toggleUserMenu()">
-					<picture>
+                    <picture>
 						<source srcset="/images/profile-picture-1500.avif 1500w,
 										/images/profile-picture-1024.avif 1024w,
 										/images/profile-picture-512.avif 512w,
@@ -41,7 +43,7 @@ if (session_status() == PHP_SESSION_NONE) {
 							 width="256" 
 							 height="256">
 					</picture>
-				</div>
+                </div>
                 <div class="user-dropdown" id="user-dropdown">
                     <span class="user-name"><?php echo htmlspecialchars($_SESSION['first_name']); ?></span>
                     <a href="/account.php" class="dropdown-link">Account Details</a>
@@ -53,14 +55,17 @@ if (session_status() == PHP_SESSION_NONE) {
                     <a href="/logout.php" class="dropdown-link">Logout</a>
                 </div>
             <?php else: ?>
-                <a href="/login.php" class="nav-link">Login</a>
-                <a href="/register.php" class="nav-link">Register</a>
+                <input type="checkbox" id="menu-toggle" hidden>
+				<label for="menu-toggle" class="hamburger">
+					<span></span>
+					<span></span>
+					<span></span>
+				</label>
+				<div class="nav-menu">
+					<a href="/login.php" class="nav-link">Login</a>
+					<a href="/register.php" class="nav-link">Register</a>
+				</div>
             <?php endif; ?>
-        </div>
-        <div class="hamburger" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
         </div>
     </div>
 </header>
@@ -122,15 +127,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
-
-function toggleMenu() {
-    const menu = document.querySelector('.nav-menu');
-    const hamburger = document.querySelector('.hamburger');
-    menu.classList.toggle('show');
-    hamburger.classList.toggle('active');
-}
-
-function toggleUserMenu() {
-    document.getElementById('user-dropdown').classList.toggle('show');
-}
 </script>

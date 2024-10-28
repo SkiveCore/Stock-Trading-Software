@@ -113,13 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 </head>
 <body>
-
     <?php include "includes/header.php"; ?>
-
     <div class="container register-form">
         <h2 class="center-align">Login to ZNCTech</h2>
         <?php
-        // Step 6: Display any success or error messages
         if (isset($_SESSION['success_message'])) {
             echo '<p class="success-message">' . htmlspecialchars($_SESSION['success_message']) . '</p>';
             unset($_SESSION['success_message']);
@@ -133,16 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo '<p class="error-message">' . htmlspecialchars($error) . '</p>';
             }
         }
-        ?>
-
-        <!-- Step 7: Check if 2FA is pending, show OTP field -->
-        <?php if (isset($_SESSION['two_factor_pending']) && $_SESSION['two_factor_pending']): ?>
+		if (isset($_SESSION['two_factor_pending']) && $_SESSION['two_factor_pending']): ?>
             <form action="login.php" method="POST" class="form-grid">
                 <md-outlined-text-field label="Enter 2FA code from app" type="text" name="otp_code" class="full-width" required></md-outlined-text-field>
                 <md-filled-button id="login-button" class="full-width" type="submit">Verify 2FA</md-filled-button>
             </form>
         <?php else: ?>
-            <!-- Regular login form -->
             <form action="login.php" method="POST" class="form-grid">
                 <md-outlined-text-field label="Email Address" type="email" name="email" id="email" class="full-width" required value="<?php echo htmlspecialchars($email); ?>"></md-outlined-text-field>
                 <md-outlined-text-field label="Password" type="password" name="password" id="password" class="full-width" required>
@@ -154,11 +147,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <md-filled-button id="login-button" class="full-width" type="submit">Login</md-filled-button>
 				<input type="submit" style="display: none;">
             </form>
+		    <noscript>
+				<style>
+					.form-grid { display: none; }
+				</style>
+				<div class="noscript-container">
+					<p class="noscript-message">For enhanced functionality, please enable JavaScript. You can still register below:</p>
+					<form action="login.php" method="POST">
+						<label for="email">Email Address:</label>
+						<input type="email" name="email" id="email" required value="<?php echo htmlspecialchars($email); ?>">
+						<br>
+						<label for="password">Password:</label>
+						<input type="password" name="password" id="password" required>
+						<br>
+						<?php if (isset($_SESSION['two_factor_pending']) && $_SESSION['two_factor_pending']): ?>
+							<label for="otp_code">Enter 2FA code from app:</label>
+							<input type="text" name="otp_code" id="otp_code" required>
+						<?php endif; ?>
+						<button type="submit">Login</button>
+					</form>
+				</div>
+			</noscript>
         <?php endif; ?>
         
         <p class="center-align">Don't have an account? <a href="register.php">Register here</a></p>
     </div>
     <?php include "includes/footer.php"; ?>
+
+
     <script>
         function togglePasswordVisibility(fieldId) {
             const passwordField = document.getElementById(fieldId);
@@ -170,6 +186,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
     </script>
-
 </body>
 </html>

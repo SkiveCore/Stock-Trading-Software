@@ -52,6 +52,40 @@ if ($wallet) {
 $buffer = 1.05;
 $max_quantity = floor($cash_balance / ($stock['current_price'] * $buffer));
 $message = isset($_GET['message']) ? htmlspecialchars(urldecode($_GET['message'])) : null;
+
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$base_url = $protocol . $_SERVER['HTTP_HOST'] . '/BackendAutomation';
+$stock_symbol = htmlspecialchars($stock['ticker_symbol']);
+$stock_name = htmlspecialchars($stock['company_name']);
+$timestamp = date("Y-m-d-H-i");
+$chart_image_url = "{$base_url}/generate_stock_chart.php?symbol={$stock_symbol}&id={$stock_id}";
+
+$ch = curl_init($chart_image_url);
+
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+
+$chart_image_response = curl_exec($ch);
+
+if (curl_errno($ch)) {
+    echo "cURL error: " . curl_error($ch);
+    curl_close($ch);
+    exit();
+}
+
+curl_close($ch);
+
+$chart_image_data = json_decode($chart_image_response, true);
+
+if ($chart_image_data && $chart_image_data['success'] && isset($chart_image_data['image_base_path'])) {
+    $image_base_path = $chart_image_data['image_base_path'];
+} else {
+    $image_base_path = "/images/default_chart";
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,14 +104,26 @@ $message = isset($_GET['message']) ? htmlspecialchars(urldecode($_GET['message']
 				<p><?php echo $_SESSION['message']; ?></p>
 			</div>
 			<?php 
-			// Clear the message after displaying it
 			unset($_SESSION['message']);
 			unset($_SESSION['message_type']);
 		endif;
 		?>
         <div class="content-wrapper">
             <div class="chart-container">
-                <canvas id="stockPerformanceChart"></canvas>
+            	<noscript>
+					<style>
+						.timeframe-buttons {
+							display: none;
+						}
+					</style>
+					<p class="noscript-message">JavaScript is required for an interactive chart. Here’s the latest stock performance chart:</p>
+					<picture>
+						<source srcset="<?php echo "{$image_base_path}_1500.webp 1500w, {$image_base_path}_1024.webp 1024w, {$image_base_path}_512.webp 512w, {$image_base_path}_256.webp 256w, {$image_base_path}_128.webp 128w"; ?>" type="image/webp">
+						<source srcset="<?php echo "{$image_base_path}_1500.png 1500w, {$image_base_path}_1024.png 1024w, {$image_base_path}_512.png 512w, {$image_base_path}_256.png 256w, {$image_base_path}_128.png 128w"; ?>" type="image/png">
+						<img src="<?php echo "{$image_base_path}_256.png"; ?>" loading="lazy" fetchpriority="low" alt="Stock Performance Chart for <?php echo htmlspecialchars($stock['company_name']); ?>" class="responsive-chart-image">
+					</picture>
+				</noscript>
+				<canvas id="stockPerformanceChart"></canvas>
                 <div class="timeframe-buttons">
 					<span class="time-button selected" id="1d">1D</span>
 					<span class="time-button" id="1w">1W</span>
@@ -161,9 +207,11 @@ $message = isset($_GET['message']) ? htmlspecialchars(urldecode($_GET['message']
 	</div>
 
     <?php include "includes/footer.php"; ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="/js/stockPerformance.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+	<script src="/js/stockPerformance.js"></script>
+
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
 			const quantityInput = document.getElementById('quantity');

@@ -8,7 +8,7 @@ function calculateNewPrice($currentPrice) {
     } elseif ($eventProbability >= 5 && $eventProbability < 10) {
         $percentageChange = (rand(100, 300) / 1000);
     } else {
-        $percentageChange = (rand(-21, 21) / 1000);
+        $percentageChange = (rand(-20, 21) / 1000);
     }
 
     $priceChange = $currentPrice * $percentageChange;

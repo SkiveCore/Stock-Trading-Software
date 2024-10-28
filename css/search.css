@@ -1,0 +1,44 @@
+.search-results-list {
+    margin-top: 20px;
+}
+
+.search-result-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.3s;
+}
+
+.search-result-item:hover {
+    background-color: #f9f9f9;
+}
+
+.search-result-item .stock-info {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.search-result-item .stock-stats {
+    display: flex;
+    gap: 10px;
+}
+
+.search-result-item .stock-price {
+    font-weight: bold;
+    color: #333;
+}
+
+.search-result-item .stock-change.positive {
+    color: #4caf50;
+}
+
+.search-result-item .stock-change.negative {
+    color: #f44336;
+}

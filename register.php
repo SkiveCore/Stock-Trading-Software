@@ -32,6 +32,7 @@
 				$last_name = trim($_POST['last_name'] ?? '');
 				$email = trim($_POST['email'] ?? '');
 				$phone = trim($_POST['phone'] ?? '');
+				$phone = preg_replace('/\D/', '', $_POST['phone'] ?? '');
 				$dob = trim($_POST['dob'] ?? '');
 				$password = $_POST['password'] ?? '';
 				$confirm_password = $_POST['confirm_password'] ?? '';
@@ -98,11 +99,9 @@
 					}
 				}
 			}
-			// Display success message if set
 			if ($success_message) {
 				echo '<p class="success-message">' . $success_message . '</p>';
 			} else {
-				// Display errors if any
 				if (!empty($errors)) {
 					foreach ($errors as $error) {
 						echo '<p class="error-message">' . htmlspecialchars($error) . '</p>';
@@ -129,6 +128,38 @@
 				</md-outlined-text-field>
 				<md-filled-button id="register-button" class="full-width" type="submit">Register</md-filled-button>
 			</form>
+			<noscript>
+				<style>
+					.form-grid { display: none; }
+				</style>
+				<div class="noscript-container">
+					<p class="noscript-message">For enhanced functionality, please enable JavaScript. You can still register below:</p>
+					<form action="register.php" method="POST">
+						<label for="first_name">First Name:</label>
+						<input type="text" name="first_name" id="first_name" required value="<?php echo htmlspecialchars($first_name); ?>">
+						<br>
+						<label for="last_name">Last Name:</label>
+						<input type="text" name="last_name" id="last_name" required value="<?php echo htmlspecialchars($last_name); ?>">
+						<br>
+						<label for="email">Email Address:</label>
+						<input type="email" name="email" id="email" required value="<?php echo htmlspecialchars($email); ?>">
+						<br>
+						<label for="phone">Phone Number:</label>
+						<input type="tel" name="phone" id="phone" required value="<?php echo htmlspecialchars($phone); ?>">
+						<br>
+						<label for="dob">Date of Birth:</label>
+						<input type="date" name="dob" id="dob" required value="<?php echo htmlspecialchars($dob); ?>">
+						<br>
+						<label for="password">Password:</label>
+						<input type="password" name="password" id="password" required>
+						<br>
+						<label for="confirm_password">Confirm Password:</label>
+						<input type="password" name="confirm_password" id="confirm_password" required>
+						<br>
+						<button type="submit">Register</button>
+					</form>
+				</div>
+			</noscript>
 			<?php
 			}
 			?>

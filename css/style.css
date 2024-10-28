@@ -287,36 +287,67 @@ canvas {
     display: table;
     clear: both;
 }
+
+.noscript-container p {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.noscript-container p.noscript-message, p.noscript-message {
+    background-color: #ffefc1;
+    color: #a67c00;
+    font-size: 1rem;
+    border: 1px solid #ffd966;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.noscript-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+}
+
+.noscript-container label {
+    font-size: 1rem;
+    color: #1c3c80;
+    text-align: left;
+    font-weight: bold;
+}
+
+.noscript-container input[type="text"],
+.noscript-container input[type="email"],
+.noscript-container input[type="tel"],
+.noscript-container input[type="date"],
+.noscript-container input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.noscript-container button[type="submit"] {
+    width: 100%;
+    background-color: #6200ea;
+    color: #fff;
+    padding: 15px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.noscript-container button[type="submit"]:hover {
+    background-color: #3700b3;
+}
 @media (max-width: 768px) {
-    .nav-menu {
-        display: visible;
-        flex-direction: column;
-        position: absolute;
-        top: 60px;
-        right: 20px;
-        background-color: #1c3c80;
-        padding: 15px;
-        border-radius: 10px;
-        width: 180px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-        z-index: 10;
-        transform-origin: top right;
-        transform: scale(0);
-        transition: transform 0.3s ease;
-    }
-
-    .nav-menu.show {
-        transform: scale(1);
-    }
-
-    .hamburger {
-        display: flex;
-    }
-	.nav-link {
-        width: 100%;
-        padding: 10px 15px;
-        text-align: center;
-    }
 	.hero {
 		padding: 80px 20px;
 	}
@@ -363,5 +394,18 @@ canvas {
 
     .register-form h2 {
         font-size: 1.8rem;
+    }
+	.noscript-container {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .noscript-container p {
+        font-size: 1rem;
+    }
+
+    .noscript-container button[type="submit"] {
+        padding: 12px;
+        font-size: 1rem;
     }
 }

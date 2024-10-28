@@ -47,35 +47,33 @@ $stmt->close();
     </div>
 	
 	
-	<div id="event-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h3>Add Market Event</h3>
-        <form id="event-form">
-            <label for="event-date">Event Date:</label>
-            <input type="text" id="event-date" name="event_date" readonly>
+	<div class="modal-content" id="event-modal-content">
+		<span class="close-btn">&times;</span>
+		<h3>Add Market Event</h3>
+		<form id="event-form">
+			<label for="event-date">Event Date:</label>
+			<input type="text" id="event-date" name="event_date" readonly>
 
-            <label for="event-type">Event Type:</label>
-            <select id="event-type" name="event_type">
-                <option value="holiday">Holiday</option>
-                <option value="special">Special</option>
-                <option value="early_closure">Early Closure</option>
-            </select>
+			<label for="event-type">Event Type:</label>
+			<select id="event-type" name="event_type">
+				<option value="holiday">Holiday</option>
+				<option value="special">Special</option>
+				<option value="early_closure">Early Closure</option>
+			</select>
 
-            <label for="open-time">Open Time:</label>
-            <input type="time" id="open-time" name="open_time">
+			<label for="open-time">Open Time:</label>
+			<input type="time" id="open-time" name="open_time">
 
-            <label for="close-time">Close Time:</label>
-            <input type="time" id="close-time" name="close_time">
+			<label for="close-time">Close Time:</label>
+			<input type="time" id="close-time" name="close_time">
 
-            <label for="event-description">Description:</label>
-            <textarea id="event-description" name="event_description" placeholder="Enter event description..."></textarea>
+			<label for="event-description">Description:</label>
+			<textarea id="event-description" name="event_description" placeholder="Enter event description..."></textarea>
 
-            <button type="submit">Save Event</button>
-        </form>
-    </div>
-</div>
-	
+			<button type="submit">Save Event</button>
+		</form>
+	</div>
+
 
     <h3>Weekly Schedule</h3>
     <form id="weekly-schedule-form" action="update_weekly_schedule.php" method="POST">
@@ -151,17 +149,17 @@ document.addEventListener("DOMContentLoaded", function() {
         attachCellClickEvents();
     }
 
-    function attachCellClickEvents() {
-        const calendarCells = document.querySelectorAll("#calendar-table td");
-        calendarCells.forEach(cell => {
-            cell.addEventListener("click", function() {
-                if (cell.textContent && !cell.classList.contains('disabled')) {
-                    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), parseInt(cell.textContent));
-                    openModal(clickedDate);
-                }
-            });
-        });
-    }
+	function attachCellClickEvents() {
+		const calendarCells = document.querySelectorAll("#calendar-table td");
+		calendarCells.forEach(cell => {
+			cell.addEventListener("click", function(event) {
+				if (cell.textContent && !cell.classList.contains('disabled')) {
+					const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), parseInt(cell.textContent));
+					openModal(clickedDate, event);  // Pass event here
+				}
+			});
+		});
+	}
 
     function fetchAndDisplayEvents(month, year) {
         fetch(`fetch_market_events.php?month=${month}&year=${year}`)
@@ -207,24 +205,68 @@ document.addEventListener("DOMContentLoaded", function() {
         currentDate = new Date();
         renderCalendar(currentDate);
     });
+
     renderCalendar(currentDate);
-    const modal = document.getElementById("event-modal");
+
+    const modalContent = document.getElementById("event-modal-content");
+    const modalHeader = modalContent.querySelector("h3");
     const closeBtn = document.querySelector(".close-btn");
     const eventForm = document.getElementById("event-form");
     const eventDateInput = document.getElementById("event-date");
 
-    function openModal(date) {
-        eventDateInput.value = date.toISOString().split('T')[0];
-        modal.style.display = "block";
-    }
+	function openModal(date, event) {
+		eventDateInput.value = date.toISOString().split('T')[0];
+
+		if (window.innerWidth <= 768) {
+			modalContent.style.display = "block";
+			modalContent.classList.add("show");
+			modalContent.style.left = "0";
+			modalContent.style.top = "0";
+		} else {
+			modalContent.style.display = "block";
+			modalContent.style.left = `${event.clientX + 10}px`;
+			modalContent.style.top = `${event.clientY + 10}px`;
+		}
+		document.body.classList.add("no-scroll");
+	}
+	
+	let isDragging = false;
+	let initialMouseX, initialMouseY, initialModalX, initialModalY;
+	
+	modalHeader.addEventListener("mousedown", function (e) {
+        e.preventDefault(); 
+        isDragging = true;
+        initialMouseX = e.clientX;
+        initialMouseY = e.clientY;
+        initialModalX = modalContent.offsetLeft;
+        initialModalY = modalContent.offsetTop;
+		modalContent.classList.add("draggable");
+	});
+
+	document.addEventListener("mousemove", function (e) {
+		if (isDragging) {
+			const dx = e.clientX - initialMouseX;
+			const dy = e.clientY - initialMouseY;
+			modalContent.style.left = `${initialModalX + dx}px`;
+			modalContent.style.top = `${initialModalY + dy}px`;
+		}
+	});
+
+	document.addEventListener("mouseup", function () {
+		isDragging = false;
+		modalContent.classList.remove("draggable");
+	});
 
     function closeModal() {
-        modal.style.display = "none";
-    }
+		modalContent.style.display = "none";
+		modalContent.classList.remove("show");
+		document.body.classList.remove("no-scroll");
+	}
 
     closeBtn.addEventListener("click", closeModal);
-    window.addEventListener("click", function(event) {
-        if (event.target === modal) {
+
+    document.addEventListener("click", function(event) {
+        if (!modalContent.contains(event.target) && !event.target.closest("#calendar-table td")) {
             closeModal();
         }
     });
@@ -258,4 +300,5 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+
 
