@@ -20,11 +20,24 @@ $pending = $pending_result->fetch_assoc();
 $pending_amount = $pending['pending_amount'] ?? 0.00;
 $buying_power = $balance - $pending_amount;
 
-$stocks_sql = "SELECT s.ticker_symbol, s.company_name, s.current_price, s.percentage_change, SUM(ust.quantity) as total_quantity
-               FROM user_stock_transactions ust
-               JOIN stocks s ON ust.stock_id = s.stock_id
-               WHERE ust.user_id = ?
-               GROUP BY s.ticker_symbol, s.company_name, s.current_price, s.percentage_change";
+$stocks_sql = "
+    SELECT 
+        s.ticker_symbol, 
+        s.company_name, 
+        s.current_price, 
+        s.percentage_change, 
+        (COALESCE(SUM(CASE WHEN ust.transaction_type = 'purchase' AND ust.status = 'completed' THEN ust.quantity ELSE 0 END), 0) -
+         COALESCE(SUM(CASE WHEN ust.transaction_type = 'sale' AND ust.status = 'completed' THEN ust.quantity ELSE 0 END), 0)) AS total_quantity
+    FROM 
+        user_stock_transactions ust
+    JOIN 
+        stocks s ON ust.stock_id = s.stock_id
+    WHERE 
+        ust.user_id = ?
+    GROUP BY 
+        s.ticker_symbol, s.company_name, s.current_price, s.percentage_change
+";
+
 $stocks_stmt = $conn->prepare($stocks_sql);
 $stocks_stmt->bind_param("i", $user_id);
 $stocks_stmt->execute();

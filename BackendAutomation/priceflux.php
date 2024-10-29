@@ -113,6 +113,10 @@ function processPendingTransactions($conn) {
             $stockId = $transaction['stock_id'];
             $quantity = $transaction['quantity'];
             $initialPrice = $transaction['price_per_share'];
+            $transactionType = $transaction['transaction_type'];
+            $orderType = strtolower($transaction['order_type']);
+            $limitPrice = $transaction['limit_price'];
+
             $priceQuery = "SELECT current_price, ticker_symbol FROM stocks WHERE stock_id = ?";
             $stmt = $conn->prepare($priceQuery);
             $stmt->bind_param("i", $stockId);
@@ -121,55 +125,106 @@ function processPendingTransactions($conn) {
             $stock = $priceResult->fetch_assoc();
             $currentPrice = $stock['current_price'];
             $tickerSymbol = $stock['ticker_symbol'];
-            $totalCost = $quantity * $currentPrice;
-            $updateWalletQuery = "UPDATE user_wallets SET balance = balance - ? WHERE user_id = ?";
-            $walletStmt = $conn->prepare($updateWalletQuery);
-            $walletStmt->bind_param("di", $totalCost, $userId);
-            $walletStmt->execute();
-            $updateTransactionQuery = "UPDATE user_stock_transactions SET status = 'completed', price_per_share = ? WHERE id = ?";
-            $transactionStmt = $conn->prepare($updateTransactionQuery);
-            $transactionStmt->bind_param("di", $currentPrice, $transactionId);
-            $transactionStmt->execute();
-			$userQuery = "SELECT first_name, email FROM users WHERE id = ?";
-            $userStmt = $conn->prepare($userQuery);
-            $userStmt->bind_param("i", $userId);
-            $userStmt->execute();
-            $userResult = $userStmt->get_result();
-            $user = $userResult->fetch_assoc();
-            $firstName = $user['first_name'];
-            $userEmail = $user['email'];
-			
-            $userEmail = $user['email'];
-            $mail = new PHPMailer(true);
-            try {
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'donotreply@znctech.org';
-                $mail->Password = 'rpnz cihj elzv ebmx';
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                $mail->Port = 465;
-                $mail->setFrom('donotreply@znctech.org', 'ZNCTech');
-                $mail->addAddress($userEmail, $firstName);
-                $mail->isHTML(true);
-                $mail->Subject = 'Your Stock Transaction Processed - ZNCTech';
-                $emailBody = file_get_contents('../includes/transaction_processed_template.html');
-                $emailBody = str_replace('{{first_name}}', htmlspecialchars($firstName), $emailBody);
-                $emailBody = str_replace('{{transaction_id}}', htmlspecialchars($transactionId), $emailBody);
-                $emailBody = str_replace('{{ticker_symbol}}', htmlspecialchars($tickerSymbol), $emailBody);
-                $emailBody = str_replace('{{quantity}}', htmlspecialchars($quantity), $emailBody);
-                $emailBody = str_replace('{{initial_price}}', number_format($initialPrice, 2), $emailBody);
-                $emailBody = str_replace('{{processed_price}}', number_format($currentPrice, 2), $emailBody);
-                $emailBody = str_replace('{{total_cost}}', number_format($totalCost, 2), $emailBody);
 
-                $mail->Body = $emailBody;
-                $mail->send();
-            } catch (Exception $e) {
-                error_log("Error sending email for transaction $transactionId: " . $mail->ErrorInfo);
+            $executeTransaction = false;
+
+            if ($orderType === 'market') {
+                $executeTransaction = true;
+            } elseif ($orderType === 'limit') {
+                if ($transactionType === 'purchase' && $currentPrice <= $limitPrice) {
+                    $executeTransaction = true;
+                } elseif ($transactionType === 'sale' && $currentPrice >= $limitPrice) {
+                    $executeTransaction = true;
+                }
+            }
+
+            if ($executeTransaction) {
+                if ($transactionType === 'purchase') {
+                    $totalCost = $quantity * $currentPrice;
+                    $balanceQuery = "SELECT balance FROM user_wallets WHERE user_id = ?";
+                    $balanceStmt = $conn->prepare($balanceQuery);
+                    $balanceStmt->bind_param("i", $userId);
+                    $balanceStmt->execute();
+                    $balanceResult = $balanceStmt->get_result();
+                    $wallet = $balanceResult->fetch_assoc();
+
+                    if ($wallet['balance'] >= $totalCost) {
+                        $updateWalletQuery = "UPDATE user_wallets SET balance = balance - ? WHERE user_id = ?";
+                        $walletStmt = $conn->prepare($updateWalletQuery);
+                        $walletStmt->bind_param("di", $totalCost, $userId);
+                        $walletStmt->execute();
+                    } else {
+                        continue;
+                    }
+                } elseif ($transactionType === 'sale') {
+                    $totalEarnings = $quantity * $currentPrice;
+                    $updateWalletQuery = "UPDATE user_wallets SET balance = balance + ? WHERE user_id = ?";
+                    $walletStmt = $conn->prepare($updateWalletQuery);
+                    $walletStmt->bind_param("di", $totalEarnings, $userId);
+                    $walletStmt->execute();
+                }
+
+                $updateTransactionQuery = "UPDATE user_stock_transactions SET status = 'completed', price_per_share = ? WHERE id = ?";
+                $transactionStmt = $conn->prepare($updateTransactionQuery);
+                $transactionStmt->bind_param("di", $currentPrice, $transactionId);
+                $transactionStmt->execute();
+
+                sendTransactionEmail($userId, $transactionId, $tickerSymbol, $quantity, $transactionType, $initialPrice, $currentPrice);
             }
         }
     }
 }
+
+function sendTransactionEmail($userId, $transactionId, $tickerSymbol, $quantity, $transactionType, $initialPrice, $currentPrice) {
+    global $conn;
+    $userQuery = "SELECT first_name, email FROM users WHERE id = ?";
+    $userStmt = $conn->prepare($userQuery);
+    $userStmt->bind_param("i", $userId);
+    $userStmt->execute();
+    $userResult = $userStmt->get_result();
+    $user = $userResult->fetch_assoc();
+    $firstName = $user['first_name'];
+    $userEmail = $user['email'];
+
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'donotreply@znctech.org';
+        $mail->Password = 'rpnz cihj elzv ebmx';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port = 465;
+        $mail->setFrom('donotreply@znctech.org', 'ZNCTech');
+        $mail->addAddress($userEmail, $firstName);
+        $mail->isHTML(true);
+        $mail->Subject = 'Your Stock Transaction Processed - ZNCTech';
+
+        $emailBody = file_get_contents('../includes/transaction_processed_template.html');
+        $emailBody = str_replace('{{first_name}}', htmlspecialchars($firstName), $emailBody);
+        $emailBody = str_replace('{{transaction_id}}', htmlspecialchars($transactionId), $emailBody);
+        $emailBody = str_replace('{{ticker_symbol}}', htmlspecialchars($tickerSymbol), $emailBody);
+        $emailBody = str_replace('{{quantity}}', htmlspecialchars($quantity), $emailBody);
+        $emailBody = str_replace('{{initial_price}}', number_format($initialPrice, 2), $emailBody);
+        $emailBody = str_replace('{{processed_price}}', number_format($currentPrice, 2), $emailBody);
+        
+        if ($transactionType === 'purchase') {
+            $emailBody = str_replace('{{transaction_type}}', 'purchase', $emailBody);
+            $emailBody = str_replace('{{total_cost}}', number_format($quantity * $currentPrice, 2), $emailBody);
+        } else {
+            $emailBody = str_replace('{{transaction_type}}', 'sale', $emailBody);
+            $emailBody = str_replace('{{total_cost}}', number_format($quantity * $currentPrice, 2), $emailBody);
+        }
+
+        $mail->Body = $emailBody;
+        $mail->send();
+    } catch (Exception $e) {
+        error_log("Error sending email for transaction $transactionId: " . $mail->ErrorInfo);
+    }
+}
+
+
+
 
 updateOpeningAndClosingPrices($conn);
 

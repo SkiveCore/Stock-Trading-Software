@@ -54,9 +54,15 @@ $pending_result = $pending_stmt->get_result();
 $pending = $pending_result->fetch_assoc();
 $pending_amount = $pending['pending_amount'] ?? 0.00;
 $buying_power = $balance - $pending_amount;
-$owned_quantity_sql = "SELECT SUM(quantity) AS owned_quantity 
-                       FROM user_stock_transactions 
-                       WHERE user_id = ? AND stock_id = ? AND transaction_type = 'purchase' AND status = 'completed'";
+$owned_quantity_sql = "
+    SELECT 
+        (COALESCE(SUM(CASE WHEN transaction_type = 'purchase' AND status = 'completed' THEN quantity ELSE 0 END), 0) -
+         COALESCE(SUM(CASE WHEN transaction_type = 'sale' AND status = 'completed' THEN quantity ELSE 0 END), 0)) AS owned_quantity
+    FROM 
+        user_stock_transactions 
+    WHERE 
+        user_id = ? AND stock_id = ?
+";
 $owned_quantity_stmt = $conn->prepare($owned_quantity_sql);
 $owned_quantity_stmt->bind_param("ii", $user_id, $stock_id);
 $owned_quantity_stmt->execute();
@@ -149,35 +155,67 @@ if ($chart_image_data && $chart_image_data['success'] && isset($chart_image_data
             </div>
 
 			<div class="purchase-card">
-				<h3>Trade Stock</h3>
-				<div class="price-info">
-					<p><strong>Current Price:</strong> $<?php echo number_format($stock['current_price'], 2); ?></p>
-					<p><strong>Buying Power:</strong> $<?php echo number_format($buying_power, 2); ?></p>
-					<p><strong>Owned Quantity:</strong> <?php echo number_format($owned_quantity); ?></p>
-				</div>
-				<div class="trade-tabs">
-					<span id="buy-tab" class="trade-tab active">Buy</span>
-					<span id="sell-tab" class="trade-tab">Sell</span>
-				</div>
-				<form id="buy-form" action="buy_stock.php" method="POST">
-					<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
-					<div class="form-group">
-						<label for="buy-quantity">Quantity:</label>
-						<input type="number" id="buy-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_buy; ?>" placeholder="Max: <?php echo $max_quantity_to_buy; ?>" required autocomplete="off">
-					</div>
-					<p class="total-cost" id="buy-total-cost">Total Cost: $0.00</p>
-					<button type="submit" class="trade-button buy-button">Buy</button>
-				</form>
-				<form id="sell-form" action="sell_stock.php" method="POST" style="display: none;">
-					<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
-					<div class="form-group">
-						<label for="sell-quantity">Quantity:</label>
-						<input type="number" id="sell-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_sell; ?>" placeholder="Max: <?php echo $max_quantity_to_sell; ?>" required autocomplete="off">
-					</div>
-					<p class="total-earnings" id="sell-total-earnings">Total Earnings: $0.00</p>
-					<button type="submit" class="trade-button sell-button">Sell</button>
-				</form>
-			</div>
+                <h3>Trade Stock</h3>
+                <div class="price-info">
+                    <p><strong>Current Price:</strong> $<?php echo number_format($stock['current_price'], 2); ?></p>
+                    <p><strong>Buying Power:</strong> $<?php echo number_format($buying_power, 2); ?></p>
+                    <p><strong>Owned Quantity:</strong> <?php echo number_format($owned_quantity); ?></p>
+                </div>
+                <div class="trade-tabs">
+                    <span id="buy-tab" class="trade-tab active">Buy</span>
+                    <span id="sell-tab" class="trade-tab">Sell</span>
+                </div>
+                
+                <!-- Buy Form -->
+                <form id="buy-form" action="buy_stock.php" method="POST">
+                    <input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
+                    
+                    <div class="form-group">
+                        <label for="buy-order-type">Order Type:</label>
+                        <select id="buy-order-type" name="order_type">
+                            <option value="market">Market</option>
+                            <option value="limit">Limit</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group limit-price-field" style="display: none;">
+                        <label for="buy-limit-price">Limit Price:</label>
+                        <input type="number" id="buy-limit-price" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="buy-quantity">Quantity:</label>
+                        <input type="number" id="buy-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_buy; ?>" placeholder="Max: <?php echo $max_quantity_to_buy; ?>" required autocomplete="off">
+                    </div>
+                    <p class="total-cost" id="buy-total-cost">Total Cost: $0.00</p>
+                    <button type="submit" class="trade-button buy-button">Buy</button>
+                </form>
+
+                <!-- Sell Form -->
+                <form id="sell-form" action="sell_stock.php" method="POST" style="display: none;">
+                    <input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
+                    
+                    <div class="form-group">
+                        <label for="sell-order-type">Order Type:</label>
+                        <select id="sell-order-type" name="order_type">
+                            <option value="market">Market</option>
+                            <option value="limit">Limit</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group limit-price-field" style="display: none;">
+                        <label for="sell-limit-price">Limit Price:</label>
+                        <input type="number" id="sell-limit-price" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sell-quantity">Quantity:</label>
+                        <input type="number" id="sell-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_sell; ?>" placeholder="Max: <?php echo $max_quantity_to_sell; ?>" required autocomplete="off">
+                    </div>
+                    <p class="total-earnings" id="sell-total-earnings">Total Earnings: $0.00</p>
+                    <button type="submit" class="trade-button sell-button">Sell</button>
+                </form>
+            </div>
 
         	<div class="stock-details-container">
                 <h2>Stock Details - <?php echo htmlspecialchars($stock['company_name'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($stock['ticker_symbol'] ?? 'N/A'); ?>)</h2>
@@ -239,41 +277,59 @@ if ($chart_image_data && $chart_image_data['success'] && isset($chart_image_data
 	<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 	<script src="/js/stockPerformance.js"></script>
 
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-			const buyTab = document.getElementById('buy-tab');
-			const sellTab = document.getElementById('sell-tab');
-			const buyForm = document.getElementById('buy-form');
-			const sellForm = document.getElementById('sell-form');
-			buyTab.addEventListener('click', function() {
-				buyForm.style.display = 'block';
-				sellForm.style.display = 'none';
-				buyTab.classList.add('active');
-				sellTab.classList.remove('active');
-			});
-			sellTab.addEventListener('click', function() {
-				buyForm.style.display = 'none';
-				sellForm.style.display = 'block';
-				buyTab.classList.remove('active');
-				sellTab.classList.add('active');
-			});
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const buyTab = document.getElementById('buy-tab');
+            const sellTab = document.getElementById('sell-tab');
+            const buyForm = document.getElementById('buy-form');
+            const sellForm = document.getElementById('sell-form');
+            const buyOrderType = document.getElementById('buy-order-type');
+            const sellOrderType = document.getElementById('sell-order-type');
+            const buyLimitPriceField = document.querySelector('#buy-form .limit-price-field');
+            const sellLimitPriceField = document.querySelector('#sell-form .limit-price-field');
 
-			const buyQuantityInput = document.getElementById('buy-quantity');
-			const sellQuantityInput = document.getElementById('sell-quantity');
-			const buyTotalCostElement = document.getElementById('buy-total-cost');
-			const sellTotalEarningsElement = document.getElementById('sell-total-earnings');
-			const stockPrice = <?php echo $stock['current_price']; ?>;
-			buyQuantityInput.addEventListener('input', function () {
-				let quantity = parseInt(buyQuantityInput.value, 10);
-				const totalCost = (quantity * stockPrice).toFixed(2);
-				buyTotalCostElement.textContent = `Total Cost: $${totalCost}`;
-			});
-			sellQuantityInput.addEventListener('input', function () {
-				let quantity = parseInt(sellQuantityInput.value, 10);
-				const totalEarnings = (quantity * stockPrice).toFixed(2);
-				sellTotalEarningsElement.textContent = `Total Earnings: $${totalEarnings}`;
-			});
-		});
-	</script>
+            buyTab.addEventListener('click', function() {
+                buyForm.style.display = 'block';
+                sellForm.style.display = 'none';
+                buyTab.classList.add('active');
+                sellTab.classList.remove('active');
+            });
+
+            sellTab.addEventListener('click', function() {
+                buyForm.style.display = 'none';
+                sellForm.style.display = 'block';
+                buyTab.classList.remove('active');
+                sellTab.classList.add('active');
+            });
+
+            buyOrderType.addEventListener('change', function() {
+                buyLimitPriceField.style.display = buyOrderType.value === 'limit' ? 'block' : 'none';
+            });
+
+            sellOrderType.addEventListener('change', function() {
+                sellLimitPriceField.style.display = sellOrderType.value === 'limit' ? 'block' : 'none';
+            });
+
+            const buyQuantityInput = document.getElementById('buy-quantity');
+            const sellQuantityInput = document.getElementById('sell-quantity');
+            const buyTotalCostElement = document.getElementById('buy-total-cost');
+            const sellTotalEarningsElement = document.getElementById('sell-total-earnings');
+            const stockPrice = <?php echo $stock['current_price']; ?>;
+
+            buyQuantityInput.addEventListener('input', function () {
+                const quantity = parseInt(buyQuantityInput.value, 10);
+                const limitPrice = buyOrderType.value === 'limit' ? parseFloat(document.getElementById('buy-limit-price').value) : stockPrice;
+                const totalCost = (quantity * limitPrice).toFixed(2);
+                buyTotalCostElement.textContent = `Total Cost: $${totalCost}`;
+            });
+
+            sellQuantityInput.addEventListener('input', function () {
+                const quantity = parseInt(sellQuantityInput.value, 10);
+                const limitPrice = sellOrderType.value === 'limit' ? parseFloat(document.getElementById('sell-limit-price').value) : stockPrice;
+                const totalEarnings = (quantity * limitPrice).toFixed(2);
+                sellTotalEarningsElement.textContent = `Total Earnings: $${totalEarnings}`;
+            });
+        });
+    </script>
 </body>
 </html>

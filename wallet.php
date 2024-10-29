@@ -31,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if (isset($_POST['delete_method'])) {
 		$method_id = $_POST['method_id'];
 
-		// Anonymize the payment method
 		$sql_anonymize = "UPDATE user_payment_methods 
 						  SET card_holder_name = 'Deleted', 
 							  card_number = AES_ENCRYPT('0000000000000000', ?), 
@@ -90,7 +89,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		} else {
 			die("Error executing statement: " . $stmt_insert->error);
 		}
-	} elseif (isset($_POST['load_wallet'])) {
+	} elseif (isset($_POST['withdraw_wallet'])) {
+        $amount = $_POST['withdraw_amount'];
+        $payment_method_id = $_POST['payment_method'];
+
+        if ($amount > $balance) {
+            $_SESSION['message'] = "Insufficient balance for this withdrawal.";
+            $_SESSION['message_type'] = "error";
+            header('Location: wallet.php');
+            exit();
+        }
+        $sql_update_wallet = "UPDATE user_wallets SET balance = balance - ? WHERE user_id = ?";
+        $stmt_update_wallet = $conn->prepare($sql_update_wallet);
+        $stmt_update_wallet->bind_param('di', $amount, $user_id);
+
+        if ($stmt_update_wallet->execute()) {
+            $transaction_type = 'withdrawal';
+            $sql_insert_transaction = "INSERT INTO user_bank_transactions (user_id, transaction_type, amount, bank_method_id) 
+                                       VALUES (?, ?, ?, ?)";
+            $stmt_insert_transaction = $conn->prepare($sql_insert_transaction);
+            $stmt_insert_transaction->bind_param('isdi', $user_id, $transaction_type, $amount, $payment_method_id);
+            if ($stmt_insert_transaction->execute()) {
+                $_SESSION['message'] = "Withdrawal successful!";
+                $_SESSION['message_type'] = "success";
+                header('Location: wallet.php');
+                exit();
+            } else {
+                die("Error executing transaction statement: " . $stmt_insert_transaction->error);
+            }
+        } else {
+            die("Error executing wallet update: " . $stmt_update_wallet->error);
+        }
+    } elseif (isset($_POST['load_wallet'])) {
 		$amount = $_POST['amount'];
 		$payment_method_id = $_POST['payment_method'];
 		$sql_check_wallet = "SELECT id FROM user_wallets WHERE user_id = ?";
@@ -164,21 +194,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>My Wallet</h1>
         <p class="wallet-balance">Current Balance: $<?php echo number_format((float)$balance, 2); ?></p>
 
-        <h2>Load Wallet</h2>
-        <form action="wallet.php" method="post" class="wallet-form">
-            <label for="amount">Amount:</label>
-            <input type="number" name="amount" step="0.01" min="0.01" required>
-            <label for="payment_method">Select Payment Method:</label>
-            <select name="payment_method" required>
-                <option value="">Select</option>
-                <?php
-                $payment_methods->data_seek(0);
-                while ($method = $payment_methods->fetch_assoc()): ?>
-                    <option value="<?php echo $method['id']; ?>"><?php echo '**** **** **** ' . substr($method['card_number'], -4); ?></option>
-                <?php endwhile; ?>
-            </select>
-            <button type="submit" name="load_wallet">Load Wallet</button>
-        </form>
+      	<div class="tabbed-section">
+            <button id="load-tab" class="tab-button active">Load Wallet</button>
+            <button id="withdraw-tab" class="tab-button">Withdraw</button>
+        </div>
+
+        <!-- Load Wallet Form -->
+        <div id="load-form" class="tab-content active">
+            <h2>Load Wallet</h2>
+            <form action="wallet.php" method="post" class="wallet-form">
+                <label for="amount">Amount:</label>
+                <input type="number" name="amount" step="0.01" min="0.01" required>
+                <label for="payment_method">Select Payment Method:</label>
+                <select name="payment_method" required>
+                    <option value="">Select</option>
+                    <?php
+                    $payment_methods->data_seek(0);
+                    while ($method = $payment_methods->fetch_assoc()): ?>
+                        <option value="<?php echo $method['id']; ?>"><?php echo '**** **** **** ' . substr($method['card_number'], -4); ?></option>
+                    <?php endwhile; ?>
+                </select>
+                <button type="submit" name="load_wallet">Load Wallet</button>
+            </form>
+        </div>
+
+        <!-- Withdraw Form -->
+        <div id="withdraw-form" class="tab-content">
+            <h2>Withdraw Funds</h2>
+            <form action="wallet.php" method="post" class="wallet-form">
+                <label for="withdraw_amount">Amount:</label>
+                <input type="number" name="withdraw_amount" step="0.01" min="0.01" required>
+                <label for="payment_method">Select Payment Method:</label>
+                <select name="payment_method" required>
+                    <option value="">Select</option>
+                    <?php
+                    $payment_methods->data_seek(0);
+                    while ($method = $payment_methods->fetch_assoc()): ?>
+                        <option value="<?php echo $method['id']; ?>"><?php echo '**** **** **** ' . substr($method['card_number'], -4); ?></option>
+                    <?php endwhile; ?>
+                </select>
+                <button type="submit" name="withdraw_wallet">Withdraw</button>
+            </form>
+        </div>
 
         <h2>Payment Methods</h2>
         <table class="payment-methods-table">
@@ -233,6 +290,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 document.addEventListener('DOMContentLoaded', function () {
 	const toggleButton = document.getElementById('toggle-add-method');
 	const addMethodForm = document.getElementById('add-method-form');
+	const loadTab = document.getElementById('load-tab');
+	const withdrawTab = document.getElementById('withdraw-tab');
+	const loadForm = document.getElementById('load-form');
+	const withdrawForm = document.getElementById('withdraw-form');
+
+	loadTab.addEventListener('click', function () {
+		loadTab.classList.add('active');
+		withdrawTab.classList.remove('active');
+		loadForm.classList.add('active');
+		withdrawForm.classList.remove('active');
+	});
+
+	withdrawTab.addEventListener('click', function () {
+		withdrawTab.classList.add('active');
+		loadTab.classList.remove('active');
+		withdrawForm.classList.add('active');
+		loadForm.classList.remove('active');
+	});
 
 	toggleButton.addEventListener('click', function () {
 		if (addMethodForm.style.display === 'none') {

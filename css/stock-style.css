@@ -143,13 +143,17 @@
 
 .purchase-card input[type="number"] {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 5px;
     box-sizing: border-box;
     transition: border-color 0.3s;
     outline: none;
+}
+
+.purchase-card input[type="number"]:focus {
+    border-color: #6f42c1;
 }
 .buy-button {
     width: 100%;
@@ -241,6 +245,35 @@
 
 .sell-button:hover {
     background-color: #c82333;
+}
+.purchase-card select {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f7f7f7;
+    color: #333;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s ease;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%2224%22 height%3D%2224%22 viewBox%3D%220 0 24 24%22%3E%3Cpath d%3D%22M7 10l5 5 5-5z%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+    padding-right: 30px; 
+}
+.purchase-card select:focus {
+    border-color: #6f42c1;
+    background-color: #fff;
+}
+.form-group label {
+    font-size: 1rem;
+    color: #555;
+    display: block;
+    margin-bottom: 5px;
+    text-align: left;
 }
 #buy-form, #sell-form {
     width: 100%;
