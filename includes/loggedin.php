@@ -2,8 +2,6 @@
 $user_id = $_SESSION['user_id'];
 
 require_once 'includes/db_connect.php';
-
-// Fetch the user's wallet balance
 $wallet_sql = "SELECT balance FROM user_wallets WHERE user_id = ?";
 $wallet_stmt = $conn->prepare($wallet_sql);
 $wallet_stmt->bind_param("i", $user_id);
@@ -11,8 +9,17 @@ $wallet_stmt->execute();
 $wallet_result = $wallet_stmt->get_result();
 $wallet = $wallet_result->fetch_assoc();
 $balance = $wallet['balance'] ?? 0.00;
+$pending_sql = "SELECT SUM(quantity * price_per_share) AS pending_amount 
+                FROM user_stock_transactions 
+                WHERE user_id = ? AND status = 'pending' AND transaction_type = 'purchase'";
+$pending_stmt = $conn->prepare($pending_sql);
+$pending_stmt->bind_param("i", $user_id);
+$pending_stmt->execute();
+$pending_result = $pending_stmt->get_result();
+$pending = $pending_result->fetch_assoc();
+$pending_amount = $pending['pending_amount'] ?? 0.00;
+$buying_power = $balance - $pending_amount;
 
-// Fetch the stocks owned by the user
 $stocks_sql = "SELECT s.ticker_symbol, s.company_name, s.current_price, s.percentage_change, SUM(ust.quantity) as total_quantity
                FROM user_stock_transactions ust
                JOIN stocks s ON ust.stock_id = s.stock_id
@@ -30,20 +37,16 @@ if ($stock_count < 10) {
     $owned_stock_ids = array_column($user_stocks, 'ticker_symbol');
     
     if (!empty($owned_stock_ids)) {
-        // If there are owned stock IDs, exclude them from the random selection
         $placeholders = implode(',', array_fill(0, count($owned_stock_ids), '?'));
         $random_stocks_sql = "SELECT ticker_symbol, company_name, current_price, percentage_change 
                               FROM stocks 
                               WHERE ticker_symbol NOT IN ($placeholders)
                               ORDER BY RAND() LIMIT ?";
         $random_stmt = $conn->prepare($random_stocks_sql);
-
-        // Dynamically bind parameters
         $types = str_repeat('s', count($owned_stock_ids)) . 'i';
         $params = array_merge($owned_stock_ids, [$remaining_count]);
         $random_stmt->bind_param($types, ...$params);
     } else {
-        // If there are no owned stocks, just select random stocks
         $random_stocks_sql = "SELECT ticker_symbol, company_name, current_price, percentage_change 
                               FROM stocks 
                               ORDER BY RAND() LIMIT ?";
@@ -66,18 +69,19 @@ if ($stock_count < 10) {
             <h2>Portfolio Performance</h2>
             <canvas id="stockChart"></canvas>
 
-            <div class="timeframe-buttons">
-                <span class="time-button selected" onclick="updateChart('1d')">1D</span>
-                <span class="time-button" onclick="updateChart('1w')">1W</span>
-                <span class="time-button" onclick="updateChart('1m')">1M</span>
-                <span class="time-button" onclick="updateChart('3m')">3M</span>
-                <span class="time-button" onclick="updateChart('ytd')">YTD</span>
-                <span class="time-button" onclick="updateChart('1y')">1Y</span>
-                <span class="time-button" onclick="updateChart('all')">ALL</span>
-            </div>
+			<div class="timeframe-buttons">
+				<span class="time-button selected" data-timeframe="1d">1D</span>
+				<span class="time-button" data-timeframe="1w">1W</span>
+				<span class="time-button" data-timeframe="1m">1M</span>
+				<span class="time-button" data-timeframe="3m">3M</span>
+				<span class="time-button" data-timeframe="ytd">YTD</span>
+				<span class="time-button" data-timeframe="1y">1Y</span>
+				<span class="time-button" data-timeframe="all">ALL</span>
+			</div>
+
 
             <div class="account-info">
-                <p>Buying Power: $<?php echo number_format((float)$balance, 2); ?></p>
+                <p>Buying Power: $<?php echo number_format((float)$buying_power, 2); ?></p>
                 <p>Cash Account: $<?php echo number_format((float)$balance, 2); ?></p>
             </div>
         </div>
@@ -132,3 +136,7 @@ if ($stock_count < 10) {
 			</ul>
 		</div>
     </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="/js/stockPortfolio.js" defer></script>

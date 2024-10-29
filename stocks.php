@@ -37,20 +37,35 @@ if ($symbol) {
 
 $cash_balance = 0;
 $user_id = $_SESSION['user_id'] ?? 0;
-
-$cash_balance = 0;
-$query = "SELECT balance, currency FROM user_wallets WHERE user_id = ?";
+$query = "SELECT balance FROM user_wallets WHERE user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $wallet = $result->fetch_assoc();
-
-if ($wallet) {
-    $cash_balance = $wallet['balance'];
-}
+$balance = $wallet['balance'] ?? 0.00;
+$pending_sql = "SELECT SUM(quantity * price_per_share) AS pending_amount 
+                FROM user_stock_transactions 
+                WHERE user_id = ? AND status = 'pending' AND transaction_type = 'purchase'";
+$pending_stmt = $conn->prepare($pending_sql);
+$pending_stmt->bind_param("i", $user_id);
+$pending_stmt->execute();
+$pending_result = $pending_stmt->get_result();
+$pending = $pending_result->fetch_assoc();
+$pending_amount = $pending['pending_amount'] ?? 0.00;
+$buying_power = $balance - $pending_amount;
+$owned_quantity_sql = "SELECT SUM(quantity) AS owned_quantity 
+                       FROM user_stock_transactions 
+                       WHERE user_id = ? AND stock_id = ? AND transaction_type = 'purchase' AND status = 'completed'";
+$owned_quantity_stmt = $conn->prepare($owned_quantity_sql);
+$owned_quantity_stmt->bind_param("ii", $user_id, $stock_id);
+$owned_quantity_stmt->execute();
+$owned_quantity_result = $owned_quantity_stmt->get_result();
+$owned_data = $owned_quantity_result->fetch_assoc();
+$owned_quantity = $owned_data['owned_quantity'] ?? 0;
 $buffer = 1.05;
-$max_quantity = floor($cash_balance / ($stock['current_price'] * $buffer));
+$max_quantity_to_buy = floor($buying_power / ($stock['current_price'] * $buffer));
+$max_quantity_to_sell = $owned_quantity;
 $message = isset($_GET['message']) ? htmlspecialchars(urldecode($_GET['message'])) : null;
 
 
@@ -134,19 +149,33 @@ if ($chart_image_data && $chart_image_data['success'] && isset($chart_image_data
             </div>
 
 			<div class="purchase-card">
-				<h3>Purchase Stock</h3>
+				<h3>Trade Stock</h3>
 				<div class="price-info">
 					<p><strong>Current Price:</strong> $<?php echo number_format($stock['current_price'], 2); ?></p>
-					<p><strong>Cash Balance:</strong> $<?php echo number_format($cash_balance, 2); ?></p>
+					<p><strong>Buying Power:</strong> $<?php echo number_format($buying_power, 2); ?></p>
+					<p><strong>Owned Quantity:</strong> <?php echo number_format($owned_quantity); ?></p>
 				</div>
-				<form action="buy_stock.php" method="POST">
+				<div class="trade-tabs">
+					<span id="buy-tab" class="trade-tab active">Buy</span>
+					<span id="sell-tab" class="trade-tab">Sell</span>
+				</div>
+				<form id="buy-form" action="buy_stock.php" method="POST">
 					<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
 					<div class="form-group">
-						<label for="quantity">Quantity:</label>
-						<input type="number" id="quantity" name="quantity" min="1" max="<?php echo $max_quantity; ?>" required autocomplete="off">
+						<label for="buy-quantity">Quantity:</label>
+						<input type="number" id="buy-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_buy; ?>" placeholder="Max: <?php echo $max_quantity_to_buy; ?>" required autocomplete="off">
 					</div>
-					<p class="total-cost">Total Cost: $0.00</p>
-					<button type="submit" class="buy-button">Buy</button>
+					<p class="total-cost" id="buy-total-cost">Total Cost: $0.00</p>
+					<button type="submit" class="trade-button buy-button">Buy</button>
+				</form>
+				<form id="sell-form" action="sell_stock.php" method="POST" style="display: none;">
+					<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
+					<div class="form-group">
+						<label for="sell-quantity">Quantity:</label>
+						<input type="number" id="sell-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_sell; ?>" placeholder="Max: <?php echo $max_quantity_to_sell; ?>" required autocomplete="off">
+					</div>
+					<p class="total-earnings" id="sell-total-earnings">Total Earnings: $0.00</p>
+					<button type="submit" class="trade-button sell-button">Sell</button>
 				</form>
 			</div>
 
@@ -212,29 +241,37 @@ if ($chart_image_data && $chart_image_data['success'] && isset($chart_image_data
 
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
-			const quantityInput = document.getElementById('quantity');
-			const maxQuantity = <?php echo $max_quantity; ?>;
-			const minQuantity = 1;
-			const totalCostElement = document.querySelector('.total-cost');
-			const stockPrice = <?php echo $stock['current_price']; ?>;
-			quantityInput.addEventListener('input', function () {
-				let quantity = parseInt(quantityInput.value, 10);
-				if (isNaN(quantity) || quantity < minQuantity) {
-					quantityInput.value = 0;
-				}
-				else if (quantity > maxQuantity) {
-					quantityInput.value = maxQuantity;
-				}
-				quantity = parseInt(quantityInput.value, 10);
-				const totalCost = (quantity * stockPrice).toFixed(2);
-				totalCostElement.textContent = `Total Cost: $${totalCost}`;
+			const buyTab = document.getElementById('buy-tab');
+			const sellTab = document.getElementById('sell-tab');
+			const buyForm = document.getElementById('buy-form');
+			const sellForm = document.getElementById('sell-form');
+			buyTab.addEventListener('click', function() {
+				buyForm.style.display = 'block';
+				sellForm.style.display = 'none';
+				buyTab.classList.add('active');
+				sellTab.classList.remove('active');
 			});
-			document.querySelector('form').addEventListener('submit', function (e) {
-				let quantity = parseInt(quantityInput.value, 10);
-				if (isNaN(quantity) || quantity < minQuantity || quantity > maxQuantity) {
-					e.preventDefault();
-					alert(`Invalid quantity. Please enter a value between ${minQuantity} and ${maxQuantity}.`);
-				}
+			sellTab.addEventListener('click', function() {
+				buyForm.style.display = 'none';
+				sellForm.style.display = 'block';
+				buyTab.classList.remove('active');
+				sellTab.classList.add('active');
+			});
+
+			const buyQuantityInput = document.getElementById('buy-quantity');
+			const sellQuantityInput = document.getElementById('sell-quantity');
+			const buyTotalCostElement = document.getElementById('buy-total-cost');
+			const sellTotalEarningsElement = document.getElementById('sell-total-earnings');
+			const stockPrice = <?php echo $stock['current_price']; ?>;
+			buyQuantityInput.addEventListener('input', function () {
+				let quantity = parseInt(buyQuantityInput.value, 10);
+				const totalCost = (quantity * stockPrice).toFixed(2);
+				buyTotalCostElement.textContent = `Total Cost: $${totalCost}`;
+			});
+			sellQuantityInput.addEventListener('input', function () {
+				let quantity = parseInt(sellQuantityInput.value, 10);
+				const totalEarnings = (quantity * stockPrice).toFixed(2);
+				sellTotalEarningsElement.textContent = `Total Earnings: $${totalEarnings}`;
 			});
 		});
 	</script>

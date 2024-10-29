@@ -21,8 +21,6 @@ function isMarketOpen($conn) {
 function updateOpeningAndClosingPrices($conn) {
     $currentDate = date('Y-m-d');
     $dayOfWeek = date('l');
-
-    // Get the opening and closing times for today from default_market_hours
     $marketHoursQuery = "SELECT open_time, close_time FROM default_market_hours WHERE day_of_week = ?";
     $stmt = $conn->prepare($marketHoursQuery);
     $stmt->bind_param("s", $dayOfWeek);
@@ -31,15 +29,11 @@ function updateOpeningAndClosingPrices($conn) {
     $marketHours = $result->fetch_assoc();
     $openTime = $marketHours['open_time'];
     $closeTime = $marketHours['close_time'];
-
-    // Get all stocks
     $stockQuery = "SELECT stock_id, current_price FROM stocks";
     $stockResult = $conn->query($stockQuery);
 
     while ($stock = $stockResult->fetch_assoc()) {
         $stockId = $stock['stock_id'];
-
-        // Check for the opening price
         $openingPriceQuery = "
             SELECT price 
             FROM stock_price_history 
@@ -59,8 +53,6 @@ function updateOpeningAndClosingPrices($conn) {
             $stmt->bind_param("di", $openingPrice, $stockId);
             $stmt->execute();
         }
-
-        // Check for the closing price if the market is now closed
         if (!isMarketOpen($conn)) {
             $closingPriceQuery = "
                 SELECT price 

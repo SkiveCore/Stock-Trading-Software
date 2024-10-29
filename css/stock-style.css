@@ -195,7 +195,56 @@
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+#stockPerformanceChart{
+	border-radius: 8px;
+}
+.trade-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    gap: 15px;
+}
 
+.trade-tab {
+    cursor: pointer;
+    padding: 10px;
+    font-size: 1.2rem;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+.trade-tab.active {
+    color: #6f42c1;
+    border-bottom: 3px solid #6f42c1;
+}
+
+.trade-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.buy-button {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.sell-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.buy-button:hover {
+    background-color: #5a30a4;
+}
+
+.sell-button:hover {
+    background-color: #c82333;
+}
+#buy-form, #sell-form {
+    width: 100%;
+}
 @media (max-width: 768px) {
     .content-wrapper {
         flex-direction: column;

@@ -24,7 +24,6 @@
 
 
 
-<script src="/js/script.js" defer></script>
 <script type="importmap">
 	{
 	  "imports": {
