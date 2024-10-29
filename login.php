@@ -171,6 +171,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php endif; ?>
         
         <p class="center-align">Don't have an account? <a href="register.php">Register here</a></p>
+		<p class="center-align"><a href="forgot_password.php">Forgot Password?</a></p>
+
     </div>
     <?php include "includes/footer.php"; ?>
 

@@ -198,8 +198,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button id="load-tab" class="tab-button active">Load Wallet</button>
             <button id="withdraw-tab" class="tab-button">Withdraw</button>
         </div>
-
-        <!-- Load Wallet Form -->
         <div id="load-form" class="tab-content active">
             <h2>Load Wallet</h2>
             <form action="wallet.php" method="post" class="wallet-form">
@@ -217,8 +215,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="submit" name="load_wallet">Load Wallet</button>
             </form>
         </div>
-
-        <!-- Withdraw Form -->
         <div id="withdraw-form" class="tab-content">
             <h2>Withdraw Funds</h2>
             <form action="wallet.php" method="post" class="wallet-form">
