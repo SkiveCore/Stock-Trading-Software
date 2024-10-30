@@ -222,11 +222,40 @@ function sendTransactionEmail($userId, $transactionId, $tickerSymbol, $quantity,
         error_log("Error sending email for transaction $transactionId: " . $mail->ErrorInfo);
     }
 }
+function updateDailyVolume($conn) {
+    $last24Hours = date('Y-m-d H:i:s', strtotime('-24 hours'));
+    $volumeQuery = "
+        SELECT stock_id, SUM(quantity) AS daily_volume
+        FROM user_stock_transactions
+        WHERE transaction_date >= ? AND status = 'completed'
+        GROUP BY stock_id";
+    $stmt = $conn->prepare($volumeQuery);
+    $stmt->bind_param("s", $last24Hours);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $stockId = $row['stock_id'];
+        $dailyVolume = $row['daily_volume'];
+        
+        $updateVolumeQuery = "UPDATE stocks SET volume = ? WHERE stock_id = ?";
+        $updateStmt = $conn->prepare($updateVolumeQuery);
+        $updateStmt->bind_param("ii", $dailyVolume, $stockId);
+        $updateStmt->execute();
+    }
+    $resetVolumeQuery = "
+        UPDATE stocks 
+        SET volume = 0 
+        WHERE stock_id NOT IN (SELECT stock_id FROM user_stock_transactions WHERE transaction_date >= ? AND status = 'completed')";
+    $resetStmt = $conn->prepare($resetVolumeQuery);
+    $resetStmt->bind_param("s", $last24Hours);
+    $resetStmt->execute();
+}
 
 
 
 
 updateOpeningAndClosingPrices($conn);
+updateDailyVolume($conn);
 
 if (isMarketOpen($conn)) {
 	processPendingTransactions($conn);
