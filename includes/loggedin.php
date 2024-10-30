@@ -73,15 +73,46 @@ if ($stock_count < 10) {
 } else {
     $random_stocks = [];
 }
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$base_url = $protocol . $_SERVER['HTTP_HOST'] . '/BackendAutomation';
+$chart_image_url = "{$base_url}/generate_portfolio_chart.php?user_id={$user_id}";
+$ch = curl_init($chart_image_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 
+$chart_image_response = curl_exec($ch);
+curl_close($ch);
+
+$chart_image_data = json_decode($chart_image_response, true);
+
+
+
+
+if ($chart_image_data && $chart_image_data['success'] && isset($chart_image_data['image_base_path'])) {
+    $image_base_path = $chart_image_data['image_base_path'];
+} else {
+    $image_base_path = "/images/default_chart";
+}
 ?>
-<!DOCTYPE html>
     <link rel="stylesheet" href="css/dashboard.css">
     <div class="trading-dashboard-container">
         <div class="chart-container">
             <h2>Portfolio Performance</h2>
             <canvas id="stockChart"></canvas>
 
+			<noscript>
+                <style>
+                    .timeframe-buttons, #stockChart { display: none; }
+                </style>
+                <p class="noscript-message">JavaScript is required for an interactive chart. Here’s the latest portfolio performance chart:</p>
+				<picture>
+					<source srcset="<?php echo "{$image_base_path}_1500.webp 1500w, {$image_base_path}_1024.webp 1024w, {$image_base_path}_512.webp 512w, {$image_base_path}_256.webp 256w, {$image_base_path}_128.webp 128w"; ?>" type="image/webp">
+					<source srcset="<?php echo "{$image_base_path}_1500.png 1500w, {$image_base_path}_1024.png 1024w, {$image_base_path}_512.png 512w, {$image_base_path}_256.png 256w, {$image_base_path}_128.png 128w"; ?>" type="image/png">
+					<img src="<?php echo "{$image_base_path}_256.png"; ?>" loading="lazy" fetchpriority="low" alt="Portfolio Performance Chart" class="responsive-chart-image noscript-chart-image">
+				</picture>
+            </noscript>
 			<div class="timeframe-buttons">
 				<span class="time-button selected" data-timeframe="1d">1D</span>
 				<span class="time-button" data-timeframe="1w">1W</span>

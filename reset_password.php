@@ -69,6 +69,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <md-outlined-text-field label="Confirm Password" type="password" name="confirm_password" required></md-outlined-text-field>
             <md-filled-button class="full-width" type="submit">Reset Password</md-filled-button>
         </form>
+		<noscript>
+            <style>.form-grid { display: none; }</style>
+            <div class="noscript-container">
+                <p class="noscript-message">JavaScript Disabled: Please enter your new password below.</p>
+                <form action="reset_password.php" method="POST">
+                    <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
+                    <label for="password">New Password:</label>
+                    <input type="password" name="password" id="password" required>
+                    <label for="confirm_password">Confirm Password:</label>
+                    <input type="password" name="confirm_password" id="confirm_password" required>
+                    <button type="submit">Reset Password</button>
+                </form>
+            </div>
+        </noscript>
     </div>
     <?php include "includes/footer.php"; ?>
 </body>

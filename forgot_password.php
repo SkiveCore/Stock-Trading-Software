@@ -84,6 +84,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <md-outlined-text-field label="Email Address" type="email" name="email" required></md-outlined-text-field>
             <md-filled-button class="full-width" type="submit">Send Reset Link</md-filled-button>
         </form>
+		<noscript>
+            <style>.form-grid { display: none; }</style>
+            <div class="noscript-container">
+                <p class="noscript-message">JavaScript Disabled: Please enter your email address below to receive a reset link.</p>
+                <form action="forgot_password.php" method="POST">
+                    <label for="email">Email Address:</label>
+                    <input type="email" name="email" id="email" required>
+                    <button type="submit">Send Reset Link</button>
+                </form>
+            </div>
+        </noscript>
     </div>
     <?php include "includes/footer.php"; ?>
 </body>

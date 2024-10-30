@@ -1,50 +1,58 @@
 <?php
 session_start();
 require 'includes/db_connect.php';
-require_once __DIR__ . '/vendor/phpgangsta/googleauthenticator/PHPGangsta/GoogleAuthenticator.php'; // Include the 2FA library
+require_once __DIR__ . '/vendor/phpgangsta/googleauthenticator/PHPGangsta/GoogleAuthenticator.php';
 
 $gAuth = new PHPGangsta_GoogleAuthenticator();
-$email = '';
 $errors = [];
-
-// Step 1: Handle form submission
+$email = '';
+define('RECAPTCHA_SITE_KEY', '6Ldb1m8qAAAAAAf_ix7ImWElgfHf9JqGA_FiCMzZ');
+define('RECAPTCHA_SECRET_KEY', '6Ldb1m8qAAAAAGnl3qjrWjuAVBPnUpMvg53BO3WD');
+function generateCaptcha() {
+    $num1 = rand(1, 9);
+    $num2 = rand(1, 9);
+    $_SESSION['fallback_captcha_answer'] = $num1 + $num2;
+    return "What is $num1 + $num2?";
+}
+function verifyCaptcha($captchaResponse) {
+    if (isset($_POST['fallback_captcha'])) {
+        return $_POST['fallback_captcha'] == $_SESSION['fallback_captcha_answer'];
+    } else {
+        $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . RECAPTCHA_SECRET_KEY . "&response=" . $captchaResponse);
+        $responseKeys = json_decode($response, true);
+        return $responseKeys['success'] ?? false;
+    }
+}
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Step 2: Check if OTP code submission is being handled
-    if (isset($_SESSION['two_factor_pending']) && $_SESSION['two_factor_pending'] && isset($_POST['otp_code'])) {
-        $otp_code = $_POST['otp_code'];
-        $secret = $_SESSION['two_fa_secret'];
-        
-        // Step 3: Verify the OTP code
-        $isCodeValid = $gAuth->verifyCode($secret, $otp_code, 2); // 2 = time window tolerance
-        
+    $captchaResponse = $_POST['g-recaptcha-response'] ?? '';
+    
+    if (!$captchaResponse && !isset($_POST['fallback_captcha'])) {
+        $errors[] = "CAPTCHA validation failed. Please try again.";
+    } elseif (!verifyCaptcha($captchaResponse)) {
+        $errors[] = "CAPTCHA validation failed. Please try again.";
+    }
+
+    if (empty($errors) && isset($_SESSION['two_factor_pending'], $_POST['otp_code']) && $_SESSION['two_factor_pending']) {
+        $otpCode = $_POST['otp_code'];
+        $isCodeValid = $gAuth->verifyCode($_SESSION['two_fa_secret'], $otpCode, 2);
+
         if ($isCodeValid) {
-            // OTP is correct, now log in the user
-            // Set all session variables, including first_name and last_name
-            $_SESSION['user_id'] = $_SESSION['temp_user_id']; 
-            $_SESSION['email'] = $_SESSION['temp_email']; 
-            $_SESSION['first_name'] = $_SESSION['temp_first_name']; 
+            $_SESSION['user_id'] = $_SESSION['temp_user_id'];
+            $_SESSION['email'] = $_SESSION['temp_email'];
+            $_SESSION['first_name'] = $_SESSION['temp_first_name'];
             $_SESSION['last_name'] = $_SESSION['temp_last_name'];
-			$_SESSION['is_admin'] = $_SESSION['temp_is_admin'];
+            $_SESSION['is_admin'] = $_SESSION['temp_is_admin'];
+            unset($_SESSION['two_factor_pending'], $_SESSION['temp_user_id'], $_SESSION['temp_email'], $_SESSION['temp_first_name'], $_SESSION['temp_last_name'], $_SESSION['two_fa_secret'], $_SESSION['temp_is_admin']);
             
-            // Clear the 2FA session data
-            unset($_SESSION['two_factor_pending']);
-            unset($_SESSION['temp_user_id']);
-            unset($_SESSION['temp_email']);
-            unset($_SESSION['temp_first_name']);
-            unset($_SESSION['temp_last_name']);
-            unset($_SESSION['two_fa_secret']);
-            unset($_SESSION['temp_is_admin']);
-            
-            header('Location: index.php');  // Redirect to index page
+            header('Location: index.php');
             exit();
         } else {
             $errors[] = 'Invalid 2FA code, please try again.';
         }
-    } else {
-        // Step 4: Handle email/password login submission
+    } elseif (empty($errors)) {
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        
+
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'A valid email address is required.';
         }
@@ -59,30 +67,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->execute();
                 $stmt->store_result();
 
-                if ($stmt->num_rows == 1) {
+                if ($stmt->num_rows === 1) {
                     $stmt->bind_result($user_id, $first_name, $last_name, $password_hash, $is_verified, $two_factor_enabled, $two_fa_secret, $is_admin);
                     $stmt->fetch();
 
                     if (!$is_verified) {
                         $errors[] = 'Your account is not verified. Please check your email for the verification link.';
                     } elseif (password_verify($password, $password_hash)) {
-                        // Step 5: Check if 2FA is enabled for this user
                         if ($two_factor_enabled) {
-                            // 2FA is enabled, prompt for the OTP code
-                            $_SESSION['temp_user_id'] = $user_id;      // Store user ID in a temporary session
-                            $_SESSION['temp_email'] = $email;         // Store email in a temporary session
-                            $_SESSION['temp_first_name'] = $first_name; // Store first name in a temporary session
-							$_SESSION['temp_is_admin'] = $is_admin;
-                            $_SESSION['temp_last_name'] = $last_name;   // Store last name in a temporary session
-                            $_SESSION['two_factor_pending'] = true;   // Set the flag for pending 2FA
+                            $_SESSION['temp_user_id'] = $user_id;
+                            $_SESSION['temp_email'] = $email;
+                            $_SESSION['temp_first_name'] = $first_name;
+                            $_SESSION['temp_last_name'] = $last_name;
+                            $_SESSION['two_factor_pending'] = true;
                             $_SESSION['two_fa_secret'] = $two_fa_secret;
+                            $_SESSION['temp_is_admin'] = $is_admin;
                         } else {
-                            // No 2FA, log the user in
                             $_SESSION['user_id'] = $user_id;
                             $_SESSION['email'] = $email;
-                            $_SESSION['first_name'] = $first_name;   // Set first name
-                            $_SESSION['last_name'] = $last_name;     // Set last name
-							$_SESSION['is_admin'] = $is_admin;
+                            $_SESSION['first_name'] = $first_name;
+                            $_SESSION['last_name'] = $last_name;
+                            $_SESSION['is_admin'] = $is_admin;
                             header('Location: index.php');
                             exit();
                         }
@@ -94,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 $stmt->close();
-                $conn->close();
             } catch (mysqli_sql_exception $e) {
                 error_log('Database error: ' . $e->getMessage());
                 $errors[] = 'An error occurred. Please try again later.';
@@ -110,82 +114,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <?php include "includes/metainfo.php"; ?>
     <title>ZNCTech - Login</title>
     <link rel="stylesheet" href="css/style.css">
-	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 </head>
 <body>
     <?php include "includes/header.php"; ?>
     <div class="container register-form">
         <h2 class="center-align">Login to ZNCTech</h2>
-        <?php
-        if (isset($_SESSION['success_message'])) {
-            echo '<p class="success-message">' . htmlspecialchars($_SESSION['success_message']) . '</p>';
-            unset($_SESSION['success_message']);
-        }
-        if (isset($_SESSION['error_message'])) {
-            echo '<p class="error-message">' . htmlspecialchars($_SESSION['error_message']) . '</p>';
-            unset($_SESSION['error_message']);
-        }
-        if (!empty($errors)) {
-            foreach ($errors as $error) {
-                echo '<p class="error-message">' . htmlspecialchars($error) . '</p>';
-            }
-        }
-		if (isset($_SESSION['two_factor_pending']) && $_SESSION['two_factor_pending']): ?>
+        <?php if (!empty($errors)): ?>
+            <?php foreach ($errors as $error): ?>
+                <p class="error-message"><?= htmlspecialchars($error); ?></p>
+            <?php endforeach; ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['two_factor_pending']) && $_SESSION['two_factor_pending']): ?>
             <form action="login.php" method="POST" class="form-grid">
                 <md-outlined-text-field label="Enter 2FA code from app" type="text" name="otp_code" class="full-width" required></md-outlined-text-field>
+                <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
                 <md-filled-button id="login-button" class="full-width" type="submit">Verify 2FA</md-filled-button>
             </form>
+		    <noscript>
+				<style>.form-grid { display: none; }</style>
+				<div class="noscript-container">
+					<p class="noscript-message">JavaScript Disabled: Please enter your 2FA code below to verify your login.</p>
+					<form action="login.php" method="POST">
+						<label for="otp_code">Enter 2FA Code:</label>
+						<input type="text" name="otp_code" id="otp_code" required>
+						<label for="fallback_captcha_answer"><?= generateCaptcha(); ?></label>
+						<input type="number" name="fallback_captcha" id="fallback_captcha_answer" required>
+						<button type="submit">Verify 2FA</button>
+					</form>
+				</div>
+			</noscript>
         <?php else: ?>
             <form action="login.php" method="POST" class="form-grid">
-                <md-outlined-text-field label="Email Address" type="email" name="email" id="email" class="full-width" required value="<?php echo htmlspecialchars($email); ?>"></md-outlined-text-field>
+                <md-outlined-text-field label="Email Address" type="email" name="email" id="email" class="full-width" required value="<?= htmlspecialchars($email); ?>"></md-outlined-text-field>
                 <md-outlined-text-field label="Password" type="password" name="password" id="password" class="full-width" required>
                     <md-icon-button toggle slot="trailing-icon" type="button" onclick="togglePasswordVisibility('password')">
                         <md-icon>visibility</md-icon>
                         <md-icon slot="selected">visibility_off</md-icon>
                     </md-icon-button>
                 </md-outlined-text-field>
+                <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
                 <md-filled-button id="login-button" class="full-width" type="submit">Login</md-filled-button>
-				<input type="submit" style="display: none;">
             </form>
-		    <noscript>
-				<style>
-					.form-grid { display: none; }
-				</style>
+
+		
+			<noscript>
+				<style>.form-grid { display: none; }</style>
 				<div class="noscript-container">
-					<p class="noscript-message">For enhanced functionality, please enable JavaScript. You can still register below:</p>
+					<p class="noscript-message">JavaScript Disabled: Please solve the following question for security:</p>
 					<form action="login.php" method="POST">
 						<label for="email">Email Address:</label>
-						<input type="email" name="email" id="email" required value="<?php echo htmlspecialchars($email); ?>">
-						<br>
+						<input type="email" name="email" id="email" required>
 						<label for="password">Password:</label>
 						<input type="password" name="password" id="password" required>
-						<br>
-						<?php if (isset($_SESSION['two_factor_pending']) && $_SESSION['two_factor_pending']): ?>
-							<label for="otp_code">Enter 2FA code from app:</label>
-							<input type="text" name="otp_code" id="otp_code" required>
-						<?php endif; ?>
+						<label for="fallback_captcha_answer"><?= generateCaptcha(); ?></label>
+						<input type="number" name="fallback_captcha" id="fallback_captcha_answer" required>
 						<button type="submit">Login</button>
 					</form>
 				</div>
 			</noscript>
         <?php endif; ?>
-        
-        <p class="center-align">Don't have an account? <a href="register.php">Register here</a></p>
-		<p class="center-align"><a href="forgot_password.php">Forgot Password?</a></p>
 
+        <p class="center-align">Don't have an account? <a href="register.php">Register here</a></p>
+        <p class="center-align"><a href="forgot_password.php">Forgot Password?</a></p>
     </div>
     <?php include "includes/footer.php"; ?>
-
-
+    <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY; ?>"></script>
     <script>
+        grecaptcha.ready(function() {
+            grecaptcha.execute('<?= RECAPTCHA_SITE_KEY; ?>', {action: 'login'}).then(function(token) {
+                document.getElementById('g-recaptcha-response').value = token;
+            });
+        });
+
         function togglePasswordVisibility(fieldId) {
             const passwordField = document.getElementById(fieldId);
-            const iconButton = event.currentTarget;
-            if (iconButton.selected) {
-                passwordField.type = 'text';
-            } else {
-                passwordField.type = 'password';
-            }
+            passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
         }
     </script>
 </body>

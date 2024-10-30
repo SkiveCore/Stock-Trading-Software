@@ -10,9 +10,13 @@ ServerSignature Off
     # Comment out Strict-Transport-Security for local development
     # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     Header always set Referrer-Policy "no-referrer-when-downgrade"
-    # Remove or comment out the existing CSP to let PHP handle it
-    # Header always set Content-Security-Policy "default-src 'self';"
 </IfModule>
+
+# Content Security Policy
+<IfModule mod_headers.c>
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' https://www.google.com https://www.gstatic.com; img-src 'self' data:; frame-src https://www.google.com https://www.gstatic.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+</IfModule>
+
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
@@ -20,9 +24,6 @@ ServerSignature Off
 <FilesMatch "(^#.*#|\.(bak|config|sql|fla|psd|ini|log|sh|inc|swp|dist)|~)$">
     Require all denied
 </FilesMatch>
-<IfModule mod_headers.c>
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
-</IfModule>
 
 RewriteEngine On
 RewriteRule ^wallet$ wallet.php [L]

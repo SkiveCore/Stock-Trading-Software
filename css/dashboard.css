@@ -137,6 +137,13 @@
     font-size: 0.9rem;
     color: #555;
 }
+.noscript-chart-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 0 auto;
+    display: block;
+}
 
 @media (max-width: 768px) {
     .trading-dashboard-container {

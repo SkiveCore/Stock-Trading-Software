@@ -155,67 +155,117 @@ if ($chart_image_data && $chart_image_data['success'] && isset($chart_image_data
             </div>
 
 			<div class="purchase-card">
-                <h3>Trade Stock</h3>
-                <div class="price-info">
-                    <p><strong>Current Price:</strong> $<?php echo number_format($stock['current_price'], 2); ?></p>
-                    <p><strong>Buying Power:</strong> $<?php echo number_format($buying_power, 2); ?></p>
-                    <p><strong>Owned Quantity:</strong> <?php echo number_format($owned_quantity); ?></p>
-                </div>
-                <div class="trade-tabs">
-                    <span id="buy-tab" class="trade-tab active">Buy</span>
-                    <span id="sell-tab" class="trade-tab">Sell</span>
-                </div>
-                
-                <!-- Buy Form -->
-                <form id="buy-form" action="buy_stock.php" method="POST">
-                    <input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
-                    
-                    <div class="form-group">
-                        <label for="buy-order-type">Order Type:</label>
-                        <select id="buy-order-type" name="order_type">
-                            <option value="market">Market</option>
-                            <option value="limit">Limit</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group limit-price-field" style="display: none;">
-                        <label for="buy-limit-price">Limit Price:</label>
-                        <input type="number" id="buy-limit-price" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="buy-quantity">Quantity:</label>
-                        <input type="number" id="buy-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_buy; ?>" placeholder="Max: <?php echo $max_quantity_to_buy; ?>" required autocomplete="off">
-                    </div>
-                    <p class="total-cost" id="buy-total-cost">Total Cost: $0.00</p>
-                    <button type="submit" class="trade-button buy-button">Buy</button>
-                </form>
+				<h3>Trade Stock</h3>
+				<div class="price-info">
+					<p><strong>Current Price:</strong> $<?php echo number_format($stock['current_price'], 2); ?></p>
+					<p><strong>Buying Power:</strong> $<?php echo number_format($buying_power, 2); ?></p>
+					<p><strong>Owned Quantity:</strong> <?php echo number_format($owned_quantity); ?></p>
+				</div>
+				<div class="js-enabled">
+					<div class="trade-tabs">
+						<span id="buy-tab" class="trade-tab active">Buy</span>
+						<span id="sell-tab" class="trade-tab">Sell</span>
+					</div>
+					<form id="buy-form" action="buy_stock.php" method="POST">
+						<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
+						<div class="form-group">
+							<label for="buy-order-type">Order Type:</label>
+							<select id="buy-order-type" name="order_type">
+								<option value="market">Market</option>
+								<option value="limit">Limit</option>
+							</select>
+						</div>
+						<div class="form-group limit-price-field" style="display: none;">
+							<label for="buy-limit-price">Limit Price:</label>
+							<input type="number" id="buy-limit-price" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
+						</div>
+						<div class="form-group">
+							<label for="buy-quantity">Quantity:</label>
+							<input type="number" id="buy-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_buy; ?>" placeholder="Max: <?php echo $max_quantity_to_buy; ?>" required autocomplete="off">
+						</div>
+						<p class="total-cost" id="buy-total-cost">Total Cost: $0.00</p>
+						<button type="submit" class="trade-button buy-button">Buy</button>
+					</form>
+					<form id="sell-form" action="sell_stock.php" method="POST" style="display: none;">
+						<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
+						<div class="form-group">
+							<label for="sell-order-type">Order Type:</label>
+							<select id="sell-order-type" name="order_type">
+								<option value="market">Market</option>
+								<option value="limit">Limit</option>
+							</select>
+						</div>
+						<div class="form-group limit-price-field" style="display: none;">
+							<label for="sell-limit-price">Limit Price:</label>
+							<input type="number" id="sell-limit-price" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
+						</div>
+						<div class="form-group">
+							<label for="sell-quantity">Quantity:</label>
+							<input type="number" id="sell-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_sell; ?>" placeholder="Max: <?php echo $max_quantity_to_sell; ?>" required autocomplete="off">
+						</div>
+						<p class="total-earnings" id="sell-total-earnings">Total Earnings: $0.00</p>
+						<button type="submit" class="trade-button sell-button">Sell</button>
+					</form>
+				</div>
+				<noscript>
+						<style>
+							.js-enabled { display: none; }
+							.noscript-trade-tabs .trade-tab { display: inline-block; padding: 5px 10px; font-size: 1.2rem; color: #333; border-bottom: 2px solid transparent; cursor: pointer; }
+							.noscript-trade-tabs .trade-tab.active { color: #6f42c1; border-color: #6f42c1; }
+						</style>
+					<?php
+						$function = $_GET['function'] ?? 'buy';
+						$isBuying = ($function === 'buy');
+					?>
+					<div class="noscript-trade-tabs">
+						<a href="?function=buy" class="trade-tab <?php echo $isBuying ? 'active' : ''; ?>">Buy</a>
+						<a href="?function=sell" class="trade-tab <?php echo !$isBuying ? 'active' : ''; ?>">Sell</a>
+					</div>
 
-                <!-- Sell Form -->
-                <form id="sell-form" action="sell_stock.php" method="POST" style="display: none;">
-                    <input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
-                    
-                    <div class="form-group">
-                        <label for="sell-order-type">Order Type:</label>
-                        <select id="sell-order-type" name="order_type">
-                            <option value="market">Market</option>
-                            <option value="limit">Limit</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group limit-price-field" style="display: none;">
-                        <label for="sell-limit-price">Limit Price:</label>
-                        <input type="number" id="sell-limit-price" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="sell-quantity">Quantity:</label>
-                        <input type="number" id="sell-quantity" name="quantity" min="1" max="<?php echo $max_quantity_to_sell; ?>" placeholder="Max: <?php echo $max_quantity_to_sell; ?>" required autocomplete="off">
-                    </div>
-                    <p class="total-earnings" id="sell-total-earnings">Total Earnings: $0.00</p>
-                    <button type="submit" class="trade-button sell-button">Sell</button>
-                </form>
-            </div>
+					<?php if ($isBuying): ?>
+						<form action="buy_stock.php" method="POST">
+							<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
+							<div class="form-group">
+								<label for="buy-order-type-noscript">Order Type:</label>
+								<select id="buy-order-type-noscript" name="order_type">
+									<option value="market">Market</option>
+									<option value="limit">Limit</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label for="buy-limit-price-noscript">Limit Price (if applicable):</label>
+								<input type="number" id="buy-limit-price-noscript" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
+							</div>
+							<div class="form-group">
+								<label for="buy-quantity-noscript">Quantity:</label>
+								<input type="number" id="buy-quantity-noscript" name="quantity" min="1" max="<?php echo $max_quantity_to_buy; ?>" placeholder="Max: <?php echo $max_quantity_to_buy; ?>" required autocomplete="off">
+							</div>
+							<button type="submit" class="trade-button buy-button">Buy</button>
+						</form>
+					<?php else: ?>
+						<form action="sell_stock.php" method="POST">
+							<input type="hidden" name="stock_id" value="<?php echo $stock_id; ?>">
+							<div class="form-group">
+								<label for="sell-order-type-noscript">Order Type:</label>
+								<select id="sell-order-type-noscript" name="order_type">
+									<option value="market">Market</option>
+									<option value="limit">Limit</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label for="sell-limit-price-noscript">Limit Price (if applicable):</label>
+								<input type="number" id="sell-limit-price-noscript" name="limit_price" step="0.01" placeholder="Enter limit price" autocomplete="off">
+							</div>
+							<div class="form-group">
+								<label for="sell-quantity-noscript">Quantity:</label>
+								<input type="number" id="sell-quantity-noscript" name="quantity" min="1" max="<?php echo $max_quantity_to_sell; ?>" placeholder="Max: <?php echo $max_quantity_to_sell; ?>" required autocomplete="off">
+							</div>
+							<button type="submit" class="trade-button sell-button">Sell</button>
+						</form>
+					<?php endif; ?>
+				</noscript>
+			</div>
+
 
         	<div class="stock-details-container">
                 <h2>Stock Details - <?php echo htmlspecialchars($stock['company_name'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($stock['ticker_symbol'] ?? 'N/A'); ?>)</h2>
