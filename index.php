@@ -8,11 +8,11 @@ if (session_status() == PHP_SESSION_NONE) {
 <head>
     <?php include "includes/metainfo.php"; ?>
     <title>ZNCTech - Trade Smarter, Trade Better</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all'">
 	<?php
     if (!isset($_SESSION['user_id'])){
 	?>
-    <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/homepage.css" media="print" onload="this.media='all'">
 	<?php
 	} 
 	?>
