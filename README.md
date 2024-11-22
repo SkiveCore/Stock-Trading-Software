@@ -16,6 +16,8 @@ The platform demonstrates my skills in full-stack development, secure communicat
 - **Fallback Mechanism:** Operates with most functionalities in NoScript mode.
 - **Secure Transactions:** End-to-end encryption for sensitive data.
 - **User-Friendly Interface:** Intuitive design for traders of all experience levels.
+- **Mobile Compatibility:** Fully responsive design ensures seamless access across devices.
+- **Enhanced Authentication:** Built-in multi-factor authentication (2FA) and reCAPTCHA for secure sign-ins.
 
 ---
 
